@@ -18,7 +18,7 @@ STATIC_DIR = BASE_DIR / "static"
 app = FastAPI(
     title="SmolLM2-135M Dissection Lab",
     description="Interactive Live LLM Architecture Visualizer & Deep Layer Inspector",
-    version="2.1.0"
+    version="2.2.0"
 )
 
 app.add_middleware(
@@ -30,13 +30,13 @@ app.add_middleware(
 )
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"[*] Initializing SmolLM2-135M on {DEVICE.upper()}...")
+print(f"[*] Initializing SmolLM2-135M on {DEVICE.upper()} with eager attention...")
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
-model = AutoModelForCausalLM.from_pretrained(MODEL_DIR).to(DEVICE)
+model = AutoModelForCausalLM.from_pretrained(MODEL_DIR, attn_implementation="eager").to(DEVICE)
 model.eval()
 
-print("[+] SmolLM2-135M loaded.")
+print("[+] SmolLM2-135M loaded successfully with eager attention.")
 
 def get_system_memory() -> Dict[str, Any]:
     process = psutil.Process()
@@ -80,7 +80,6 @@ def get_info():
 
 @app.get("/embedding/{token_id}")
 def get_token_embedding(token_id: int):
-    """Direct Safetensors Memory Lookup: Returns exact 576 coordinates for a given token ID."""
     vocab_size = model.config.vocab_size
     if token_id < 0 or token_id >= vocab_size:
         raise HTTPException(status_code=400, detail=f"Token ID must be between 0 and {vocab_size - 1}.")
@@ -183,7 +182,6 @@ def simulate(req: SimulateRequest):
             in_shape = list(args[0].shape) if args and hasattr(args[0], "shape") else None
             out_shape = list(t_out.shape) if hasattr(t_out, "shape") else None
 
-            # Calculate granular vector summaries for each token position
             token_vectors = []
             if t_out is not None and hasattr(t_out, "dim") and t_out.dim() >= 2:
                 seq_len = t_out.shape[1]
@@ -236,14 +234,12 @@ def simulate(req: SimulateRequest):
 
         return _hook
 
-    # Hook 1: Embedding Layer
     hooks.append(
         model.model.embed_tokens.register_forward_hook(
             make_hook("embedding", "Embedding Layer", "Embedding(49152, 576)", 0, model.model.embed_tokens)
         )
     )
 
-    # Hook 2: All 30 Transformer Blocks
     for i, layer in enumerate(model.model.layers):
         hooks.append(
             layer.register_forward_hook(
@@ -251,14 +247,12 @@ def simulate(req: SimulateRequest):
             )
         )
 
-    # Hook 3: Final RMSNorm
     hooks.append(
         model.model.norm.register_forward_hook(
             make_hook("norm", "Final RMSNorm", "LlamaRMSNorm(576)", 31, model.model.norm)
         )
     )
 
-    # Hook 4: LM Head
     hooks.append(
         model.lm_head.register_forward_hook(
             make_hook("lm_head", "LM Head", "Linear(576, 49152)", 32, model.lm_head, is_head=True)
@@ -268,8 +262,11 @@ def simulate(req: SimulateRequest):
     t0 = time.perf_counter()
     try:
         with torch.no_grad():
-            outputs = model(**inputs)
+            outputs = model(**inputs, output_attentions=True)
             logits = outputs.logits
+            # Extract real attention maps (averaged across 9 heads) from Block 0 and Block 29
+            b0_matrix = [[round(float(v) * 100, 2) for v in row] for row in outputs.attentions[0][0].mean(dim=0).tolist()]
+            b29_matrix = [[round(float(v) * 100, 2) for v in row] for row in outputs.attentions[-1][0].mean(dim=0).tolist()]
     finally:
         for h in hooks:
             h.remove()
@@ -300,6 +297,10 @@ def simulate(req: SimulateRequest):
         "token_breakdown": token_breakdown,
         "total_steps": len(recorded_steps),
         "layers": recorded_steps,
+        "real_attentions": {
+            "block_0": b0_matrix,
+            "block_29": b29_matrix
+        },
         "top_10_candidates": candidate_list,
         "predicted_token": candidate_list[0] if candidate_list else None,
         "latency_sec": round(t1 - t0, 4),

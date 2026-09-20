@@ -1279,45 +1279,430 @@
       color: var(--matcha);
     }
 
-    /* Vector Absorption Panel */
-    .att-absorption-panel {
+    /* ==========================================================================
+       INGREDIENT MIXER & ATTENTION SPOTLIGHT STYLES
+       ========================================================================== */
+    .mixer-panel {
       background: #FFFFFF;
       border: 1px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .mixer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-stone);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .mixer-icon-badge {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .mixer-title {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mixer-target-pill {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: #FFFFFF;
+      background: var(--matcha);
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .mixer-subtitle {
+      font-size: 12px;
+      color: var(--muted-ash);
+      margin-top: 2px;
+    }
+
+    .mixer-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--slate-indigo);
+      background: var(--card-subtle);
+      border: 1px solid var(--border-stone);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .mixer-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .mixer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mixer-ingredients-card,
+    .mixer-resolution-card {
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
       border-radius: 10px;
-      padding: 16px 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .att-absorption-header {
+    .mixer-col-header {
+      font-family: var(--font-serif);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--sumi-ink);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 12.5px;
+      border-bottom: 1px solid var(--border-stone);
+      padding-bottom: 8px;
     }
 
-    .att-576-mini-grid {
-      display: grid;
-      grid-template-columns: repeat(36, 1fr);
-      gap: 2px;
-      background: var(--washi-bg);
+    .mixer-bars-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mixer-ingredient-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .mixer-ing-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .mixer-ing-word {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+    }
+
+    .mixer-ing-role {
+      font-size: 11px;
+      color: var(--muted-ash);
+    }
+
+    .mixer-ing-pct {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .mixer-track {
+      background: #E8E4DC;
+      border-radius: 5px;
+      height: 9px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .mixer-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Before vs After Card */
+    .before-after-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .state-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .state-before {
+      border-left: 3px solid var(--terracotta);
+    }
+
+    .state-after {
+      border-left: 3px solid var(--matcha);
+      background: #FAFCF9;
+    }
+
+    .state-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .state-phase-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .before-badge {
+      color: var(--terracotta);
+    }
+
+    .after-badge {
+      color: var(--matcha);
+    }
+
+    .state-status-pill {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .status-ambiguous {
+      background: var(--terracotta-subtle);
+      color: var(--terracotta);
+      border: 1px solid var(--terracotta-border);
+    }
+
+    .status-resolved {
+      background: var(--matcha-subtle);
+      color: var(--matcha);
+      border: 1px solid var(--matcha-border);
+      font-weight: 600;
+    }
+
+    .state-word-title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+    }
+
+    .state-desc {
+      font-size: 11.5px;
+      color: var(--charcoal);
+      line-height: 1.45;
+    }
+
+    .state-blend-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 8px;
+      background: rgba(74, 107, 83, 0.08);
+      border-radius: 6px;
+      border: 1px dashed var(--matcha-border);
+    }
+
+    .blend-arrow-icon {
+      font-size: 13px;
+      color: var(--matcha);
+      font-weight: 700;
+      padding-left: 4px;
+    }
+
+    .blend-summary-text {
+      font-size: 11.5px;
+      color: var(--sumi-ink);
+    }
+
+    .mixer-footer-note {
+      background: var(--card-subtle);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--charcoal);
+      line-height: 1.5;
+      border: 1px solid var(--border-stone);
+    }
+
+    /* Live Attention Spotlight in Simulator */
+    .token-card-row.selected-token {
+      border-color: var(--matcha) !important;
+      background: var(--matcha-subtle) !important;
+      box-shadow: 0 0 0 1px var(--matcha-border);
+    }
+
+    .attention-spotlight-section {
+      background: var(--card-subtle);
+      border: 1px solid var(--border-stone);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .spotlight-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .spotlight-title {
+      font-family: var(--font-serif);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .spotlight-block-toggle {
+      display: flex;
+      gap: 3px;
+      background: #FFFFFF;
+      padding: 2px;
+      border-radius: 6px;
+      border: 1px solid var(--border-stone);
+    }
+
+    .spotlight-block-btn {
+      border: none;
+      background: transparent;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-family: var(--font-sans);
+      color: var(--charcoal);
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .spotlight-block-btn:hover {
+      color: var(--sumi-ink);
+      background: var(--card-hover);
+    }
+
+    .spotlight-block-btn.active {
+      background: var(--slate-indigo);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .spotlight-narrative-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-left: 3px solid var(--matcha);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--sumi-ink);
+      line-height: 1.5;
+    }
+
+    .spotlight-bars-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .spotlight-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .spotlight-bar-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+    }
+
+    .spotlight-pos-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted-ash);
+    }
+
+    .spotlight-word-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+      background: #FFFFFF;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-stone);
+    }
+
+    .spotlight-pct-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .spotlight-track {
+      background: #E8E4DC;
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .spotlight-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .spotlight-safetensors-btn {
+      width: 100%;
+      background: #FFFFFF;
       border: 1px solid var(--border-stone);
       border-radius: 6px;
-      padding: 8px;
+      padding: 8px 12px;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--slate-indigo);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.18s ease;
     }
 
-    .att-cell-576 {
-      aspect-ratio: 1;
-      border-radius: 1px;
-      background: #E5E0D8;
-      transition: background-color 0.4s ease, transform 0.2s ease;
-    }
-
-    @keyframes pulseAnim {
-      0% { transform: scale(0.9); opacity: 0.7; }
-      50% { transform: scale(1.3); opacity: 1; }
-      100% { transform: scale(0.9); opacity: 0.7; }
+    .spotlight-safetensors-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--border-focus);
+      color: var(--sumi-ink);
     }
   </style>
 </head>
@@ -1409,6 +1794,45 @@
               <div class="tokens-list" id="sim-tokens-list">
                 <div style="color: var(--muted-ash); font-size: 13px; text-align: center; padding: 24px 0;">
                   Click "Simulate Pipeline" above to tokenize input.
+                </div>
+              </div>
+
+              <!-- Live Attention Spotlight Section -->
+              <div class="attention-spotlight-section" id="attention-spotlight-section" style="display: none;">
+                <div class="spotlight-header">
+                  <div class="spotlight-title">
+                    <span style="color: var(--matcha);">●</span> Live Attention Spotlight
+                    <span class="zen-tooltip-trigger">ⓘ
+                      <span class="zen-tooltip-box">
+                        <strong>Real Transformer Attention</strong>
+                        Extracted live from SmolLM2's internal forward pass! Shows exactly what percentage of attention this token gave to preceding words.
+                      </span>
+                    </span>
+                  </div>
+                  <div class="spotlight-block-toggle">
+                    <button class="spotlight-block-btn active" id="btn-spotlight-b0" data-block="0">Block 0 (Syntax)</button>
+                    <button class="spotlight-block-btn" id="btn-spotlight-b29" data-block="29">Block 29 (Semantics)</button>
+                  </div>
+                </div>
+
+                <div id="spotlight-narrative-card" class="spotlight-narrative-card">
+                  <!-- Plain English narrative card -->
+                </div>
+
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--muted-ash); display: flex; justify-content: space-between; align-items: center;">
+                  <span>Attention on preceding words:</span>
+                  <span id="spotlight-target-tag" style="color: var(--slate-indigo); font-weight: 600;">Target: --</span>
+                </div>
+
+                <div class="spotlight-bars-list" id="spotlight-bars-list">
+                  <!-- Real Attention Bars -->
+                </div>
+
+                <div id="spotlight-safetensors-link" style="margin-top: 4px;">
+                  <button id="btn-open-safetensors-from-spotlight" class="spotlight-safetensors-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>Inspect Row #<span id="spotlight-token-id-label">--</span> in model.safetensors &rarr;</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1751,7 +2175,7 @@
               <span>Words Talking to Words: Interactive Self-Attention</span>
             </div>
             <div class="deck-analogy-box">
-              <strong>Interactive Context Blending:</strong> Click any word in the sequence below. That word becomes the <strong>Query</strong> and queries the other 4 words (<strong>Keys</strong>). Connecting curved arrows show the <strong>Attention Scores</strong> (opacity & thickness represent strength of connection). Below, watch the word's <strong>576-dimensional vector</strong> absorb context values from its neighbors!
+              <strong>The Ingredient Mixer:</strong> Click any word in the sequence below to make it the active target container. Connecting curved arrows reveal the <strong>Attention Scores</strong>. Below, <strong>The Context Recipe & Ingredient Mixer</strong> shows the exact percentage of semantic ingredients pulled from surrounding words and the resulting <strong>Before vs. After</strong> meaning resolution!
             </div>
 
             <!-- Interactive Self-Attention Canvas & Words Row -->
@@ -1806,29 +2230,48 @@
                 </div>
               </div>
 
-              <!-- Vector Absorption Panel (Below Grid) -->
-              <div class="att-absorption-panel">
-                <div class="att-absorption-header">
-                  <div>
-                    <span style="font-weight: 600; color: var(--sumi-ink);" id="att-absorption-title">
-                      Vector Context Blending: 576 Dimensions for "bank"
-                    </span>
-                    <div style="font-size: 11px; color: var(--muted-ash);" id="att-absorption-subtitle">
-                      Absorbing Value data from neighbors (Primary influencer: "river" at 64%)
+              <!-- Context Recipe / Ingredient Mixer Panel -->
+              <div class="mixer-panel" id="mixer-panel">
+                <div class="mixer-header">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="mixer-icon-badge">🥣</span>
+                    <div>
+                      <div class="mixer-title">
+                        Context Recipe: Target Word <span class="mixer-target-pill" id="mixer-target-word-pill">"bank"</span>
+                      </div>
+                      <div class="mixer-subtitle">
+                        How Self-Attention acts as an ingredient blender, pulling semantic context from surrounding words.
+                      </div>
                     </div>
                   </div>
-                  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--matcha);" id="att-vector-shift-badge">
-                    &Delta; Context Vector: +0.412
+                  <div class="mixer-badge" id="mixer-target-pos-badge">Target Container: Position #2</div>
+                </div>
+
+                <div class="mixer-grid">
+                  <!-- Column 1: Ingredient Proportions (Percentage Bars) -->
+                  <div class="mixer-ingredients-card">
+                    <div class="mixer-col-header">
+                      <span>Ingredients Pulled into Container</span>
+                      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--matcha);">Total = 100%</span>
+                    </div>
+                    <div class="mixer-bars-list" id="mixer-bars-list">
+                      <!-- Dynamically rendered horizontal percentage bars -->
+                    </div>
+                  </div>
+
+                  <!-- Column 2: Before vs. After Semantic Resolution Card -->
+                  <div class="mixer-resolution-card">
+                    <div class="mixer-col-header">
+                      <span>Before vs. After Semantic Transformation</span>
+                    </div>
+                    <div class="before-after-container" id="mixer-before-after-container">
+                      <!-- Dynamically rendered Before / Blended / After -->
+                    </div>
                   </div>
                 </div>
 
-                <!-- 576-Dimension Mini-Grid showing color absorption wave -->
-                <div class="att-576-mini-grid" id="att-576-grid">
-                  <!-- 576 cells (36 cols x 16 rows) -->
-                </div>
-
-                <div style="font-size: 12.5px; color: var(--charcoal); line-height: 1.5;" id="att-explanation-narrative">
-                  <strong>What happened inside the 576 dimensions:</strong> When <em>"bank"</em> attends 64% to <em>"river"</em>, the nature and water values are mathematically added into its coordinates. The word's numerical vector is now primed to mean a <strong>riverbank</strong> instead of a money bank!
+                <div class="mixer-footer-note" id="mixer-narrative-note">
+                  <!-- Narrative explanation -->
                 </div>
               </div>
             </div>
@@ -1938,10 +2381,8 @@
         view.classList.toggle('active', view.id === tabId);
       });
 
-      if (tabId === 'tab-guide' && currentDeckStep === 2) {
-        setTimeout(() => {
-          renderAttentionVisualization(currentAttentionQueryIdx);
-        }, 60);
+      if (tabId === 'tab-guide') {
+        setDeckStep(currentDeckStep);
       }
     }
 
@@ -2036,6 +2477,11 @@
         renderTokenBreakdown(data.token_breakdown);
         safeSetText('token-count-badge', `${data.token_count} tokens`);
 
+        // Select the last token by default for Attention Spotlight
+        if (data.token_breakdown && data.token_breakdown.length > 0) {
+          selectSpotlightToken(data.token_breakdown.length - 1);
+        }
+
         // Render Top-10 Predictions
         renderPredictions(data.top_10_candidates);
 
@@ -2059,32 +2505,43 @@
       }
     }
 
+    let currentSpotlightTokenIdx = null;
+    let currentSpotlightBlock = 0; // 0 or 29
+
     function renderTokenBreakdown(tokens) {
       simTokensList.innerHTML = '';
       tokens.forEach((t, idx) => {
         const row = document.createElement('div');
-        row.className = 'token-card-row';
-        row.title = "Click to inspect direct Safetensors Row Memory!";
+        row.className = 'token-card-row' + (idx === currentSpotlightTokenIdx ? ' selected-token' : '');
+        row.dataset.tokenIdx = idx;
+        row.title = "Click to spotlight Attention weights and inspect memory!";
         row.innerHTML = `
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-ash);">#${t.index}</span>
             <span class="token-text-badge">${escapeHtml(t.token_str)}</span>
           </div>
-          <div style="text-align: right;">
-            <div style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; color: var(--slate-indigo);">ID: ${t.id}</div>
-            <div class="token-row-hint">
-              <span>Inspect Safetensors Row &rarr;</span>
-            </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; color: var(--slate-indigo);">ID: ${t.id}</span>
+            <span class="token-spotlight-indicator" style="font-size: 10.5px; color: var(--matcha); font-weight: 500;">Spotlight &bull;</span>
           </div>
         `;
 
-        // Click to open Direct Safetensors Memory Lookup Modal
+        // Click to spotlight real attention and inspect safetensors
         row.addEventListener('click', () => {
-          openSafetensorsModal(t.id, t.token_str, t.hex_repr, idx);
+          selectSpotlightToken(idx);
         });
 
         simTokensList.appendChild(row);
       });
+    }
+
+    function selectSpotlightToken(idx) {
+      currentSpotlightTokenIdx = idx;
+      const allRows = simTokensList.querySelectorAll('.token-card-row');
+      allRows.forEach((r, i) => {
+        r.classList.toggle('selected-token', i === idx);
+      });
+      renderAttentionSpotlight(idx, currentSpotlightBlock);
     }
 
     async function openSafetensorsModal(tokenId, tokenStr, hexRepr, posIdx) {
@@ -2402,56 +2859,228 @@
     }
 
     // =========================================================================
-    // INTERACTIVE SELF-ATTENTION VISUALIZATION LOGIC
+    // INTERACTIVE SELF-ATTENTION & THE INGREDIENT MIXER LOGIC
     // =========================================================================
     const ATTENTION_MATRIX = [
       // 0: The
-      { query: "The", scores: [null, 0.55, 0.30, 0.08, 0.07], dominant: "river", shift: "+0.318",
-        narrative: "<strong>What happened inside the 576 dimensions:</strong> As the determiner <em>'The'</em> looks ahead, it attends heavily to <em>'river'</em> (55%) and <em>'bank'</em> (30%), binding its grammatical reference directly to the subject." },
+      {
+        query: "The",
+        pos: 0,
+        scores: [null, 0.55, 0.30, 0.08, 0.07],
+        dominant: "river",
+        ingredients: [
+          { word: "river", pct: 55, role: "Primary Noun Reference", color: "#4A6B53" },
+          { word: "bank", pct: 30, role: "Compound Scene Specifier", color: "#3D4A54" },
+          { word: "was", pct: 8, role: "Syntactic Linker", color: "#787570" },
+          { word: "silent", pct: 7, role: "Atmospheric Trait", color: "#787570" }
+        ],
+        blendSummary: 'Blended with <strong>55% "river"</strong> &amp; <strong>30% "bank"</strong> context',
+        before: {
+          word: '"The"',
+          badge: "Ambiguous / Empty",
+          badgeClass: "status-ambiguous",
+          desc: "Bare grammatical article. Holds no physical meaning or sensory imagery on its own."
+        },
+        after: {
+          word: '"The"',
+          badge: "Resolved: Definite Scene Pointer",
+          badgeClass: "status-resolved",
+          desc: "Now bound to point directly toward the physical waterway and serene riverbank landscape ahead."
+        },
+        narrative: "<strong>What happened in the ingredient mix:</strong> The bare article <em>'The'</em> pulls 55% of its meaning from <em>'river'</em> and 30% from <em>'bank'</em>. It is no longer an empty pointer—it now firmly anticipates the physical riverside setting."
+      },
       // 1: river
-      { query: "river", scores: [0.12, null, 0.52, 0.12, 0.24], dominant: "bank", shift: "+0.384",
-        narrative: "<strong>What happened inside the 576 dimensions:</strong> <em>'river'</em> pairs strongly with <em>'bank'</em> (52%) and <em>'silent'</em> (24%), linking the physical body of water with its edge and peaceful stillness." },
-      // 2: bank (default)
-      { query: "bank", scores: [0.08, 0.64, null, 0.08, 0.20], dominant: "river", shift: "+0.412",
-        narrative: "<strong>What happened inside the 576 dimensions:</strong> When <em>'bank'</em> queries its neighbors, it matches 64% with <em>'river'</em>. Natural water features are mathematically infused into its coordinates, resolving the ambiguous word into a <strong>riverbank</strong> instead of a financial bank!" },
+      {
+        query: "river",
+        pos: 1,
+        scores: [0.12, null, 0.52, 0.12, 0.24],
+        dominant: "bank",
+        ingredients: [
+          { word: "bank", pct: 52, role: "Physical Shore & Boundary", color: "#4A6B53" },
+          { word: "silent", pct: 24, role: "Atmospheric Serenity", color: "#3D4A54" },
+          { word: "The", pct: 12, role: "Definite Specifier", color: "#787570" },
+          { word: "was", pct: 12, role: "Predicate Connector", color: "#787570" }
+        ],
+        blendSummary: 'Blended with <strong>52% "bank"</strong> &amp; <strong>24% "silent"</strong> context',
+        before: {
+          word: '"river"',
+          badge: "Generic Watercourse",
+          badgeClass: "status-ambiguous",
+          desc: "Isolated dictionary coordinate. Could represent a raging whitewater torrent, an industrial canal, or an Amazon delta."
+        },
+        after: {
+          word: '"river"',
+          badge: "Resolved: Placid Natural Waterway",
+          badgeClass: "status-resolved",
+          desc: "Infused with physical shore coordinates ('bank') and acoustic stillness ('silent'). Clearly a tranquil natural river."
+        },
+        narrative: "<strong>What happened in the ingredient mix:</strong> <em>'river'</em> blends 52% from <em>'bank'</em> and 24% from <em>'silent'</em>. The vector is transformed from an abstract water flow into a still, bordered waterway."
+      },
+      // 2: bank (default primary demo)
+      {
+        query: "bank",
+        pos: 2,
+        scores: [0.08, 0.64, null, 0.08, 0.20],
+        dominant: "river",
+        ingredients: [
+          { word: "river", pct: 64, role: "Primary Context Provider (Aquatic / Nature)", color: "#4A6B53" },
+          { word: "silent", pct: 20, role: "Atmospheric Calm", color: "#3D4A54" },
+          { word: "The", pct: 8, role: "Grammatical Pointer", color: "#787570" },
+          { word: "was", pct: 8, role: "State-of-being Anchor", color: "#787570" }
+        ],
+        blendSummary: 'Blended with <strong>64% "river"</strong> context',
+        before: {
+          word: '"bank"',
+          badge: "Ambiguous: Money? River?",
+          badgeClass: "status-ambiguous",
+          desc: "Raw vocabulary coordinate. Could mean a financial money depository ($), a river shoreline, or an airplane tilt."
+        },
+        after: {
+          word: '"bank"',
+          badge: "Resolved: Nature / Riverbank",
+          badgeClass: "status-resolved",
+          desc: "Coordinates are infused with water, earth, and landscape semantics. Ambiguity is completely resolved!"
+        },
+        narrative: "<strong>What happened in the ingredient mix:</strong> When <em>'bank'</em> blends 64% <em>'river'</em> context into its container, financial coordinates are overwritten with natural water features. The ambiguity evaporates!"
+      },
       // 3: was
-      { query: "was", scores: [0.08, 0.18, 0.28, null, 0.46], dominant: "silent", shift: "+0.295",
-        narrative: "<strong>What happened inside the 576 dimensions:</strong> The copula verb <em>'was'</em> links its predicate adjective <em>'silent'</em> (46%) backward to <em>'bank'</em> (28%), asserting the serene state of the scene." },
+      {
+        query: "was",
+        pos: 3,
+        scores: [0.08, 0.18, 0.28, null, 0.46],
+        dominant: "silent",
+        ingredients: [
+          { word: "silent", pct: 46, role: "Predicate Adjective", color: "#4A6B53" },
+          { word: "bank", pct: 28, role: "Subject Noun Phrase", color: "#3D4A54" },
+          { word: "river", pct: 18, role: "Modifier Context", color: "#787570" },
+          { word: "The", pct: 8, role: "Grammar Specifier", color: "#787570" }
+        ],
+        blendSummary: 'Blended with <strong>46% "silent"</strong> &amp; <strong>28% "bank"</strong> context',
+        before: {
+          word: '"was"',
+          badge: "Generic Auxiliary",
+          badgeClass: "status-ambiguous",
+          desc: "Empty past tense copula. Acts purely as grammatical glue without environmental sensation."
+        },
+        after: {
+          word: '"was"',
+          badge: "Resolved: State of Tranquil Being",
+          badgeClass: "status-resolved",
+          desc: "Channels the silence of the scene backwards into the subject riverbank, tying the quiet mood together."
+        },
+        narrative: "<strong>What happened in the ingredient mix:</strong> The copula <em>'was'</em> blends 46% of its state from <em>'silent'</em> and 28% from <em>'bank'</em>, anchoring the tranquil atmosphere directly to the subject."
+      },
       // 4: silent
-      { query: "silent", scores: [0.08, 0.45, 0.35, 0.12, null], dominant: "river", shift: "+0.362",
-        narrative: "<strong>What happened inside the 576 dimensions:</strong> The descriptive modifier <em>'silent'</em> attends across the waterway, projecting tranquil semantic tones onto both <em>'river'</em> (45%) and <em>'bank'</em> (35%)." }
+      {
+        query: "silent",
+        pos: 4,
+        scores: [0.08, 0.45, 0.35, 0.12, null],
+        dominant: "river",
+        ingredients: [
+          { word: "river", pct: 45, role: "Thematic Object (Water)", color: "#4A6B53" },
+          { word: "bank", pct: 35, role: "Physical Terrain", color: "#3D4A54" },
+          { word: "was", pct: 12, role: "Copular Link", color: "#787570" },
+          { word: "The", pct: 8, role: "Definite Context", color: "#787570" }
+        ],
+        blendSummary: 'Blended with <strong>45% "river"</strong> &amp; <strong>35% "bank"</strong> context',
+        before: {
+          word: '"silent"',
+          badge: "Abstract Silence",
+          badgeClass: "status-ambiguous",
+          desc: "General absence of noise or speech. No sense of physical space, outdoors, or nature."
+        },
+        after: {
+          word: '"silent"',
+          badge: "Resolved: Scenic Wilderness Hush",
+          badgeClass: "status-resolved",
+          desc: "Infused with open-air water and earth terrain coordinates. Evokes the serene silence of a peaceful outdoor riverside."
+        },
+        narrative: "<strong>What happened in the ingredient mix:</strong> <em>'silent'</em> pulls 45% from <em>'river'</em> and 35% from <em>'bank'</em>, transforming acoustic silence into a rich, immersive natural stillness."
+      }
     ];
 
     let currentAttentionQueryIdx = 2; // Default to "bank"
 
-    function initAttentionMiniGrid() {
-      const grid = document.getElementById('att-576-grid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      for (let i = 0; i < 576; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'att-cell-576';
-        cell.id = `att-cell-${i}`;
-        grid.appendChild(cell);
+    function renderIngredientMixer(queryIdx) {
+      const data = ATTENTION_MATRIX[queryIdx];
+      if (!data) return;
+
+      safeSetText('mixer-target-word-pill', `"${data.query}"`);
+      safeSetText('mixer-target-pos-badge', `Target Container: Position #${data.pos}`);
+      safeSetHtml('mixer-narrative-note', data.narrative);
+
+      // Render Ingredients List (Horizontal percentage bars)
+      const barsList = document.getElementById('mixer-bars-list');
+      if (barsList) {
+        barsList.innerHTML = '';
+        data.ingredients.forEach(ing => {
+          const row = document.createElement('div');
+          row.className = 'mixer-ingredient-row';
+          row.innerHTML = `
+            <div class="mixer-ing-meta">
+              <span class="mixer-ing-word">"${escapeHtml(ing.word)}"</span>
+              <span class="mixer-ing-role">${escapeHtml(ing.role)}</span>
+              <span class="mixer-ing-pct" style="color: ${ing.color};">${ing.pct}%</span>
+            </div>
+            <div class="mixer-track">
+              <div class="mixer-fill" style="width: ${ing.pct}%; background-color: ${ing.color};"></div>
+            </div>
+          `;
+          barsList.appendChild(row);
+        });
+      }
+
+      // Render Before vs After Semantic Resolution Card
+      const compareContainer = document.getElementById('mixer-before-after-container');
+      if (compareContainer) {
+        compareContainer.innerHTML = `
+          <div class="before-after-wrapper">
+            <!-- Before Attention -->
+            <div class="state-card state-before">
+              <div class="state-header">
+                <span class="state-phase-badge before-badge">Before Attention</span>
+                <span class="state-status-pill ${data.before.badgeClass}">${escapeHtml(data.before.badge)}</span>
+              </div>
+              <div class="state-word-title">${escapeHtml(data.before.word)}</div>
+              <div class="state-desc">${escapeHtml(data.before.desc)}</div>
+            </div>
+
+            <!-- Blending Transition Divider -->
+            <div class="state-blend-divider">
+              <div class="blend-arrow-icon">&darr;</div>
+              <div class="blend-summary-text">${data.blendSummary}</div>
+            </div>
+
+            <!-- After Attention -->
+            <div class="state-card state-after">
+              <div class="state-header">
+                <span class="state-phase-badge after-badge">After Attention</span>
+                <span class="state-status-pill ${data.after.badgeClass}">${escapeHtml(data.after.badge)}</span>
+              </div>
+              <div class="state-word-title">${escapeHtml(data.after.word)}</div>
+              <div class="state-desc">${escapeHtml(data.after.desc)}</div>
+            </div>
+          </div>
+        `;
       }
     }
 
     function renderAttentionVisualization(queryIdx) {
       currentAttentionQueryIdx = queryIdx;
       const data = ATTENTION_MATRIX[queryIdx];
+      if (!data) return;
+
       const wordCards = document.querySelectorAll('.att-word-card');
       const svgPathsGroup = document.getElementById('att-svg-paths-group');
       const svgLabelsGroup = document.getElementById('att-svg-labels-group');
       const canvasContainer = document.getElementById('att-canvas-box');
 
-      if (!canvasContainer || !svgPathsGroup || !svgLabelsGroup) return;
-
-      svgPathsGroup.innerHTML = '';
-      svgLabelsGroup.innerHTML = '';
+      if (svgPathsGroup) svgPathsGroup.innerHTML = '';
+      if (svgLabelsGroup) svgLabelsGroup.innerHTML = '';
 
       // Update Card Active & Badge states
       wordCards.forEach((card, idx) => {
-        const isQuery = idx === queryIdx;
+        const isQuery = (idx === queryIdx);
         card.classList.toggle('query-active', isQuery);
 
         const tagBadge = document.getElementById(`att-tag-${idx}`);
@@ -2471,120 +3100,207 @@
             tagBadge.className = 'att-tag-badge att-tag-key';
           }
           const score = data.scores[idx];
-          if (scoreBadge) {
+          if (scoreBadge && score !== null && score !== undefined) {
             scoreBadge.textContent = `${(score * 100).toFixed(0)}%`;
           }
         }
       });
 
-      // Update Narrative and Badges
-      safeSetText('att-absorption-title', `Vector Context Blending: 576 Dimensions for "${data.query}"`);
-      safeSetText('att-absorption-subtitle', `Absorbing Value data from neighbors (Primary influencer: "${data.dominant}")`);
-      safeSetText('att-vector-shift-badge', `Δ Context Vector: ${data.shift}`);
-      safeSetHtml('att-explanation-narrative', data.narrative);
+      // Render connecting curved SVG arcs
+      if (canvasContainer && svgPathsGroup && svgLabelsGroup && wordCards.length > queryIdx) {
+        const containerRect = canvasContainer.getBoundingClientRect();
+        const queryCard = wordCards[queryIdx];
+        const queryRect = queryCard.getBoundingClientRect();
+        const queryCenterX = queryRect.left + queryRect.width / 2 - containerRect.left;
+        const queryTopY = queryRect.top - containerRect.top;
 
-      // Measure positions and draw connecting curved SVG arcs
-      const containerRect = canvasContainer.getBoundingClientRect();
-      const queryCard = wordCards[queryIdx];
-      const queryRect = queryCard.getBoundingClientRect();
-      const queryCenterX = queryRect.left + queryRect.width / 2 - containerRect.left;
-      const queryTopY = queryRect.top - containerRect.top;
+        wordCards.forEach((keyCard, keyIdx) => {
+          if (keyIdx === queryIdx) return;
+          const score = data.scores[keyIdx];
+          if (score === null || score === undefined) return;
 
-      wordCards.forEach((keyCard, keyIdx) => {
-        if (keyIdx === queryIdx) return;
-        const score = data.scores[keyIdx];
-        const keyRect = keyCard.getBoundingClientRect();
-        const keyCenterX = keyRect.left + keyRect.width / 2 - containerRect.left;
-        const keyTopY = keyRect.top - containerRect.top;
+          const keyRect = keyCard.getBoundingClientRect();
+          const keyCenterX = keyRect.left + keyRect.width / 2 - containerRect.left;
+          const keyTopY = keyRect.top - containerRect.top;
 
-        // Calculate arched control point
-        const distance = Math.abs(keyCenterX - queryCenterX);
-        const archHeight = Math.min(130, 45 + distance * 0.22);
-        const midX = (queryCenterX + keyCenterX) / 2;
-        const controlY = Math.max(10, queryTopY - archHeight);
+          // Arched control point
+          const distance = Math.abs(keyCenterX - queryCenterX);
+          const archHeight = Math.min(130, 45 + distance * 0.22);
+          const midX = (queryCenterX + keyCenterX) / 2;
+          const controlY = Math.max(10, queryTopY - archHeight);
 
-        // SVG Path
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        const d = `M ${queryCenterX} ${queryTopY} Q ${midX} ${controlY} ${keyCenterX} ${keyTopY}`;
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
+          // SVG Path
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const d = `M ${queryCenterX} ${queryTopY} Q ${midX} ${controlY} ${keyCenterX} ${keyTopY}`;
+          path.setAttribute('d', d);
+          path.setAttribute('fill', 'none');
 
-        // Stroke styling based on attention score
-        const strokeColor = score > 0.4 ? '#4A6B53' : (score > 0.15 ? '#3D4A54' : '#787570');
-        const strokeWidth = Math.max(1.5, Math.min(5, score * 7));
-        const marker = score > 0.4 ? 'url(#att-arrowhead)' : 'url(#att-arrowhead-dim)';
+          const strokeColor = score > 0.4 ? '#4A6B53' : (score > 0.15 ? '#3D4A54' : '#787570');
+          const strokeWidth = Math.max(1.5, Math.min(5, score * 7));
+          const marker = score > 0.4 ? 'url(#att-arrowhead)' : 'url(#att-arrowhead-dim)';
 
-        path.setAttribute('stroke', strokeColor);
-        path.setAttribute('stroke-width', strokeWidth);
-        path.setAttribute('stroke-opacity', Math.max(0.2, score));
-        path.setAttribute('marker-end', marker);
+          path.setAttribute('stroke', strokeColor);
+          path.setAttribute('stroke-width', strokeWidth);
+          path.setAttribute('stroke-opacity', Math.max(0.2, score));
+          path.setAttribute('marker-end', marker);
 
-        svgPathsGroup.appendChild(path);
+          svgPathsGroup.appendChild(path);
 
-        // Score Label over apex of curve
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('x', midX);
-        label.setAttribute('y', controlY - 4);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('font-family', 'JetBrains Mono, monospace');
-        label.setAttribute('font-size', '10px');
-        label.setAttribute('font-weight', '600');
-        label.setAttribute('fill', strokeColor);
-        label.setAttribute('opacity', Math.max(0.6, score));
-        label.textContent = `${(score * 100).toFixed(0)}%`;
-        svgLabelsGroup.appendChild(label);
-      });
-
-      // Animate 576-dimensional vector absorption wave
-      animateVectorAbsorption(queryIdx);
-    }
-
-    function animateVectorAbsorption(queryIdx) {
-      const cells = document.querySelectorAll('.att-cell-576');
-      if (!cells || cells.length === 0) return;
-
-      const data = ATTENTION_MATRIX[queryIdx];
-      const maxScore = Math.max(...data.scores.filter(s => s !== null));
-
-      cells.forEach((cell, i) => {
-        // Base coordinate before attention
-        const baseVal = Math.sin(i * 0.12 + queryIdx) * 0.5;
-        const baseColor = baseVal >= 0 ? `rgba(74, 107, 83, ${0.1 + baseVal * 0.4})` : `rgba(184, 83, 62, ${0.1 + Math.abs(baseVal) * 0.4})`;
-        cell.style.backgroundColor = baseColor;
-        cell.style.transform = 'scale(1)';
-
-        // Staggered wave animation sweeping through 576 dims
-        setTimeout(() => {
-          // New blended coordinate after absorbing context
-          const shiftVal = Math.cos(i * 0.15 + maxScore * 4) * 0.6 + (maxScore * 0.3);
-          const newColor = shiftVal >= 0 ? `rgba(74, 107, 83, ${0.25 + shiftVal * 0.65})` : `rgba(184, 83, 62, ${0.15 + Math.abs(shiftVal) * 0.5})`;
-          cell.style.backgroundColor = newColor;
-          cell.style.transform = 'scale(1.15)';
-          setTimeout(() => {
-            cell.style.transform = 'scale(1)';
-          }, 150);
-        }, (i % 36) * 12 + Math.floor(i / 36) * 15);
-      });
-    }
-
-    // Attach click handlers to the 5 words
-    document.addEventListener('DOMContentLoaded', () => {
-      initAttentionMiniGrid();
-      const wordCards = document.querySelectorAll('.att-word-card');
-      wordCards.forEach(card => {
-        card.addEventListener('click', () => {
-          const idx = parseInt(card.dataset.wordIdx, 10);
-          renderAttentionVisualization(idx);
+          // Score Label over apex of curve
+          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          label.setAttribute('x', midX);
+          label.setAttribute('y', controlY - 4);
+          label.setAttribute('text-anchor', 'middle');
+          label.setAttribute('font-family', 'JetBrains Mono, monospace');
+          label.setAttribute('font-size', '10px');
+          label.setAttribute('font-weight', '600');
+          label.setAttribute('fill', strokeColor);
+          label.setAttribute('opacity', Math.max(0.6, score));
+          label.textContent = `${(score * 100).toFixed(0)}%`;
+          svgLabelsGroup.appendChild(label);
         });
-      });
+      }
 
-      // Re-draw arrows when window resizes
-      window.addEventListener('resize', () => {
-        if (currentDeckStep === 2) {
-          renderAttentionVisualization(currentAttentionQueryIdx);
+      // Render Context Recipe & Ingredient Mixer
+      renderIngredientMixer(queryIdx);
+    }
+
+    // =========================================================================
+    // LIVE REAL-TIME ATTENTION SPOTLIGHT (SIMULATOR TAB 1)
+    // =========================================================================
+    function renderAttentionSpotlight(idx, block) {
+      const spotlightSec = document.getElementById('attention-spotlight-section');
+      if (!spotlightSec || !currentSimData || !currentSimData.real_attentions) return;
+      spotlightSec.style.display = 'block';
+
+      const attMatrix = (block === 0) 
+        ? currentSimData.real_attentions.block_0 
+        : currentSimData.real_attentions.block_29;
+
+      if (!attMatrix || !attMatrix[idx]) return;
+
+      const currentToken = currentSimData.token_breakdown[idx];
+      if (!currentToken) return;
+
+      const rowScores = attMatrix[idx]; // Array of percentages for tokens 0..idx
+
+      // Update target header tag
+      safeSetText('spotlight-target-tag', `Focus: #${idx} "${currentToken.token_str}"`);
+
+      // Gather preceding tokens
+      const preceding = [];
+      for (let j = 0; j <= idx; j++) {
+        preceding.push({
+          idx: j,
+          token: currentSimData.token_breakdown[j],
+          pct: (rowScores && rowScores[j] !== undefined) ? Number(rowScores[j]) : 0
+        });
+      }
+
+      // Determine top influencer among previous tokens (excluding self if idx > 0)
+      let maxOther = null;
+      if (idx > 0) {
+        const others = preceding.filter(p => p.idx !== idx);
+        if (others.length > 0) {
+          maxOther = others.reduce((prev, curr) => (curr.pct > prev.pct) ? curr : prev, others[0]);
+        }
+      }
+      const selfItem = preceding.find(p => p.idx === idx);
+      const selfPct = selfItem ? selfItem.pct : 0;
+
+      // Plain-English explanation
+      let narrative = '';
+      if (idx === 0) {
+        narrative = `<strong>Position #0 ("${escapeHtml(currentToken.token_str)}")</strong> is the prompt's opening token. In causal autoregressive attention, it pays 100% of its focus to itself to anchor the initial context coordinate.`;
+      } else if (maxOther && maxOther.pct >= 15) {
+        narrative = `SmolLM is focusing mostly on <strong>"${escapeHtml(maxOther.token.token_str)}"</strong> (<strong>${maxOther.pct}%</strong>) to understand <strong>"${escapeHtml(currentToken.token_str)}"</strong>.`;
+      } else {
+        narrative = `SmolLM distributes attention across the context, while <strong>"${escapeHtml(currentToken.token_str)}"</strong> retains <strong>${selfPct}%</strong> self-focus.`;
+      }
+
+      const layerNote = (block === 0)
+        ? `<div style="margin-top: 6px; font-size: 11px; color: var(--muted-ash);"><em>Block 0 (Early Syntax):</em> Tracks local grammar, consecutive words, and syntactic pairings.</div>`
+        : `<div style="margin-top: 6px; font-size: 11px; color: var(--muted-ash);"><em>Block 29 (Deep Semantics):</em> Synthesizes whole-sentence context to anticipate the next word.</div>`;
+
+      safeSetHtml('spotlight-narrative-card', narrative + layerNote);
+
+      // Render Spotlight Bars
+      const barsContainer = document.getElementById('spotlight-bars-list');
+      if (barsContainer) {
+        barsContainer.innerHTML = '';
+        preceding.forEach(p => {
+          const isSelf = (p.idx === idx);
+          const isTopOther = (maxOther && p.idx === maxOther.idx && !isSelf && p.pct >= 15);
+
+          let barColor = 'var(--muted-ash)';
+          if (isTopOther) barColor = 'var(--matcha)';
+          else if (isSelf) barColor = 'var(--slate-indigo)';
+          else if (p.pct >= 15) barColor = 'var(--slate-indigo)';
+
+          let roleLabel = '';
+          if (isSelf) {
+            roleLabel = '<span style="font-size: 10px; color: var(--muted-ash); font-family: var(--font-sans);">(Self)</span>';
+          } else if (isTopOther) {
+            roleLabel = '<span style="font-size: 10px; color: var(--matcha); font-weight: 600; font-family: var(--font-sans);">(Top Focus)</span>';
+          }
+
+          const item = document.createElement('div');
+          item.className = 'spotlight-bar-row';
+          item.innerHTML = `
+            <div class="spotlight-bar-meta">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="spotlight-pos-tag">#${p.idx}</span>
+                <span class="spotlight-word-tag">"${escapeHtml(p.token.token_str)}"</span>
+                ${roleLabel}
+              </div>
+              <span class="spotlight-pct-tag" style="color: ${barColor};">${p.pct}%</span>
+            </div>
+            <div class="spotlight-track">
+              <div class="spotlight-fill" style="width: ${Math.min(p.pct, 100)}%; background-color: ${barColor};"></div>
+            </div>
+          `;
+          barsContainer.appendChild(item);
+        });
+      }
+
+      // Wire up safetensors row inspect button
+      const sfLabel = document.getElementById('spotlight-token-id-label');
+      if (sfLabel) sfLabel.textContent = currentToken.id;
+      const sfBtn = document.getElementById('btn-open-safetensors-from-spotlight');
+      if (sfBtn) {
+        sfBtn.onclick = () => {
+          openSafetensorsModal(currentToken.id, currentToken.token_str, currentToken.byte_repr ? currentToken.byte_repr.map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')) : null, idx);
+        };
+      }
+    }
+
+    // Spotlight Block Toggle Listeners (Block 0 vs Block 29)
+    const btnSpotlightB0 = document.getElementById('btn-spotlight-b0');
+    const btnSpotlightB29 = document.getElementById('btn-spotlight-b29');
+    if (btnSpotlightB0) {
+      btnSpotlightB0.addEventListener('click', () => {
+        currentSpotlightBlock = 0;
+        btnSpotlightB0.classList.add('active');
+        if (btnSpotlightB29) btnSpotlightB29.classList.remove('active');
+        if (currentSpotlightTokenIdx !== null) {
+          renderAttentionSpotlight(currentSpotlightTokenIdx, 0);
         }
       });
-    });
+    }
+    if (btnSpotlightB29) {
+      btnSpotlightB29.addEventListener('click', () => {
+        currentSpotlightBlock = 29;
+        btnSpotlightB29.classList.add('active');
+        if (btnSpotlightB0) btnSpotlightB0.classList.remove('active');
+        if (currentSpotlightTokenIdx !== null) {
+          renderAttentionSpotlight(currentSpotlightTokenIdx, 29);
+        }
+      });
+    }
+
+    // =========================================================================
+    // FIRST-PRINCIPLES GUIDE SLIDE NAVIGATION
+    // =========================================================================
     const deckStepDots = document.querySelectorAll('.deck-step-dot');
     const deckSlides = document.querySelectorAll('.deck-slide');
     const deckPrevBtn = document.getElementById('deck-prev-btn');
@@ -2599,8 +3315,13 @@
         dot.classList.toggle('active', idx === step);
       });
       deckSlides.forEach((slide, idx) => {
-        slide.classList.toggle('active', idx === step);
+        const isCurrent = (idx === step);
+        slide.classList.toggle('active', isCurrent);
+        slide.style.setProperty('display', isCurrent ? 'flex' : 'none', 'important');
       });
+
+      if (deckPrevBtn) deckPrevBtn.disabled = (step === 0);
+      if (deckNextBtn) deckNextBtn.disabled = (step === 3);
 
       if (step === 2) {
         setTimeout(() => {
@@ -2619,6 +3340,28 @@
     if (deckNextBtn) {
       deckNextBtn.addEventListener('click', () => setDeckStep(currentDeckStep + 1));
     }
+
+    // Attach click handlers to the 5 words in Step 3
+    document.addEventListener('DOMContentLoaded', () => {
+      const wordCards = document.querySelectorAll('.att-word-card');
+      wordCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.wordIdx, 10);
+          renderAttentionVisualization(idx);
+        });
+      });
+
+      // Re-draw arrows when window resizes
+      window.addEventListener('resize', () => {
+        if (currentDeckStep === 2) {
+          renderAttentionVisualization(currentAttentionQueryIdx);
+        }
+      });
+
+      // Initialize deck to Step 0 and Ingredient Mixer
+      setDeckStep(0);
+      renderIngredientMixer(2);
+    });
 
     function escapeHtml(str) {
       if (!str) return '';
