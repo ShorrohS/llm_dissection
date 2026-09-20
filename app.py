@@ -262,7 +262,7 @@ def simulate(req: SimulateRequest):
     t0 = time.perf_counter()
     try:
         with torch.no_grad():
-            outputs = model(**inputs, output_attentions=True)
+            outputs = model(**inputs, output_attentions=True, output_hidden_states=True)
             logits = outputs.logits
             # Extract real attention maps (averaged across 9 heads) from Block 0 and Block 29
             b0_matrix = [[round(float(v) * 100, 2) for v in row] for row in outputs.attentions[0][0].mean(dim=0).tolist()]
@@ -271,6 +271,60 @@ def simulate(req: SimulateRequest):
         for h in hooks:
             h.remove()
     t1 = time.perf_counter()
+
+    # Logit Lens: Early exit top-3 next-token predictions & top 3 mover dimensions per block
+    # Computed safely after diagnostic hooks are removed
+    logit_lens = []
+    if hasattr(outputs, "hidden_states") and outputs.hidden_states is not None:
+        with torch.no_grad():
+            for i in range(30):
+                curr_h = outputs.hidden_states[i + 1][:, -1, :]
+                prev_h = outputs.hidden_states[i][:, -1, :]
+
+                normed = model.model.norm(curr_h)
+                l_i = model.lm_head(normed)[0]
+                p_i = torch.softmax(l_i, dim=-1)
+                top3 = torch.topk(p_i, 3)
+
+                top_preds = []
+                for r, (t_idx, prob_val) in enumerate(zip(top3.indices, top3.values)):
+                    t_id = int(t_idx)
+                    w = tokenizer.decode([t_id])
+                    top_preds.append({
+                        "rank": r + 1,
+                        "token_id": t_id,
+                        "token_str": w,
+                        "prob": round(float(prob_val) * 100, 2)
+                    })
+
+                delta = (curr_h[0] - prev_h[0]).float()
+                top3_dims = torch.topk(torch.abs(delta), 3).indices.tolist()
+                movers = []
+                for d in top3_dims:
+                    movers.append({
+                        "dim": int(d),
+                        "delta": round(float(delta[d]), 3),
+                        "val": round(float(curr_h[0, d]), 3)
+                    })
+
+                if i <= 9:
+                    role = "Early Layer (Grammar & Syntax)"
+                    role_desc = "Building local grammatical structure, token pairing, and fundamental word senses."
+                elif i <= 21:
+                    role = "Middle Layer (Knowledge & Facts)"
+                    role_desc = "Associating factual knowledge, entity properties, and broad semantic themes."
+                else:
+                    role = "Late Layer (Decision & Token Choice)"
+                    role_desc = "Collapsing contextual uncertainty into concrete next-word vocabulary probabilities."
+
+                logit_lens.append({
+                    "layer_idx": i,
+                    "layer_name": f"Transformer Block {i}",
+                    "role": role,
+                    "role_desc": role_desc,
+                    "top_predictions": top_preds,
+                    "top_movers": movers
+                })
 
     last_logits = logits[0, -1, :]
     probs = torch.softmax(last_logits, dim=-1)
@@ -303,6 +357,7 @@ def simulate(req: SimulateRequest):
         },
         "top_10_candidates": candidate_list,
         "predicted_token": candidate_list[0] if candidate_list else None,
+        "logit_lens": logit_lens,
         "latency_sec": round(t1 - t0, 4),
         "system_memory": get_system_memory()
     }
