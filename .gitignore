@@ -1,0 +1,23 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Model weights (Large files > 100MB; run download_model.py to fetch)
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.pt
+*.safetensors
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,2641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmolLM2-135M Dissection Lab &bull; Zen Minimalist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Washi Japanese Zen Palette */
+      --washi-bg: #F9F8F5;
+      --card-bg: #FFFFFF;
+      --card-subtle: #F3F0EA;
+      --card-hover: #ECE8E0;
+      
+      --sumi-ink: #1A1A1A;
+      --charcoal: #4A4A4A;
+      --muted-ash: #787570;
+      --border-stone: #E5E0D8;
+      --border-focus: #B8B2A7;
+      
+      /* Signal Accents */
+      --matcha: #4A6B53;
+      --matcha-subtle: rgba(74, 107, 83, 0.12);
+      --matcha-border: rgba(74, 107, 83, 0.35);
+      
+      --slate-indigo: #3D4A54;
+      --slate-indigo-dark: #2C353D;
+      
+      --terracotta: #B8533E;
+      --terracotta-subtle: rgba(184, 83, 62, 0.12);
+      --terracotta-border: rgba(184, 83, 62, 0.35);
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-soft: 0 4px 20px -2px rgba(26, 26, 26, 0.04), 0 2px 6px -1px rgba(26, 26, 26, 0.02);
+      --shadow-card: 0 1px 3px rgba(26, 26, 26, 0.04), 0 1px 2px rgba(26, 26, 26, 0.02);
+      --shadow-modal: 0 20px 40px -4px rgba(26, 26, 26, 0.16), 0 8px 16px -2px rgba(26, 26, 26, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--washi-bg);
+      color: var(--sumi-ink);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sticky Zen Top Navigation Bar */
+    header.zen-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(249, 248, 245, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-stone);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--sumi-ink);
+      color: var(--washi-bg);
+      font-family: var(--font-serif);
+      font-weight: 500;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-name {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--sumi-ink);
+      letter-spacing: -0.2px;
+    }
+
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--matcha);
+      background: var(--matcha-subtle);
+      border: 1px solid var(--matcha-border);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* Navigation Tabs */
+    .tabs-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--card-subtle);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-stone);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--charcoal);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover {
+      color: var(--sumi-ink);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--sumi-ink);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--muted-ash);
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--matcha);
+    }
+
+    /* Main Workspace */
+    main.zen-workspace {
+      flex: 1;
+      padding: 24px 32px 48px;
+      max-width: 1540px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-view {
+      display: none;
+      animation: tabFadeIn 0.25s ease-out;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Common Card Styles */
+    .zen-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 12px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .zen-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-stone);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--washi-bg);
+    }
+
+    .zen-card-title {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--sumi-ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .zen-card-body {
+      padding: 20px;
+    }
+
+    /* ==========================================================================
+       TOOLTIPS & JARGON TRANSLATIONS
+       ========================================================================== */
+    .zen-tooltip-trigger {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: help;
+      border-bottom: 1px dashed var(--muted-ash);
+      color: inherit;
+    }
+
+    .zen-tooltip-trigger:hover .zen-tooltip-box {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(-4px);
+    }
+
+    .zen-tooltip-box {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      width: 250px;
+      background: var(--sumi-ink);
+      color: #FFFFFF;
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      line-height: 1.45;
+      padding: 8px 12px;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+      z-index: 1000;
+      transition: opacity 0.18s, transform 0.18s;
+      font-weight: 400;
+    }
+
+    .zen-tooltip-box::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--sumi-ink) transparent transparent transparent;
+    }
+
+    .zen-tooltip-box strong {
+      color: var(--matcha);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* ==========================================================================
+       TAB 1: Token Flow & Simulator
+       ========================================================================== */
+    .sim-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .prompt-control-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 18px 24px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .prompt-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .zen-input {
+      flex: 1;
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--sumi-ink);
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .zen-input:focus {
+      border-color: var(--matcha);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px var(--matcha-subtle);
+    }
+
+    .zen-btn-primary {
+      background: var(--slate-indigo);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 22px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .zen-btn-primary:hover {
+      background: var(--slate-indigo-dark);
+      box-shadow: 0 2px 8px rgba(61, 74, 84, 0.25);
+    }
+
+    .zen-btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .presets-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted-ash);
+    }
+
+    .preset-pill {
+      background: var(--card-subtle);
+      border: 1px solid var(--border-stone);
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: var(--charcoal);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+
+    .preset-pill:hover {
+      background: var(--card-hover);
+      color: var(--sumi-ink);
+      border-color: var(--border-focus);
+    }
+
+    .sim-pipeline-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr 340px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    /* Column 1: Interactive Clickable Token Cards */
+    .tokens-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .token-card-row {
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+    }
+
+    .token-card-row:hover {
+      background: #FFFFFF;
+      border-color: var(--matcha);
+      box-shadow: 0 2px 8px rgba(74, 107, 83, 0.1);
+      transform: translateX(2px);
+    }
+
+    .token-text-badge {
+      font-weight: 600;
+      color: var(--sumi-ink);
+      font-family: var(--font-mono);
+      background: #FFFFFF;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border-stone);
+    }
+
+    .token-row-hint {
+      font-size: 10px;
+      color: var(--matcha);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    /* Column 2: 33 Transformation Steps */
+    .flow-spine-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 620px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .flow-spine-container::-webkit-scrollbar {
+      width: 5px;
+    }
+    .flow-spine-container::-webkit-scrollbar-thumb {
+      background: var(--border-stone);
+      border-radius: 3px;
+    }
+
+    .spine-node {
+      background: var(--card-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .spine-node::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: transparent;
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      transition: all 0.2s;
+    }
+
+    .spine-node:hover {
+      background: var(--washi-bg);
+      border-color: var(--border-focus);
+      transform: translateX(2px);
+    }
+
+    .spine-node.active-wave {
+      background: #FFFFFF;
+      border-color: var(--matcha);
+      box-shadow: 0 0 0 2px var(--matcha-subtle), 0 4px 12px rgba(74, 107, 83, 0.1);
+    }
+
+    .spine-node.active-wave::before {
+      background: var(--matcha);
+    }
+
+    .node-title-box h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+    }
+
+    .node-title-box span {
+      font-size: 11px;
+      color: var(--muted-ash);
+      font-family: var(--font-mono);
+    }
+
+    .node-shape-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      padding: 3px 8px;
+      border-radius: 5px;
+      color: var(--slate-indigo);
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .node-meta-box {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .node-meta-box .ram {
+      color: var(--matcha);
+      font-weight: 500;
+    }
+
+    .node-meta-box .inspect-link {
+      color: var(--terracotta);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
+    /* Column 3: Predictions & Next-Token Distribution */
+    .pred-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .pred-row {
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .pred-row:hover {
+      background: #FFFFFF;
+      border-color: var(--matcha);
+    }
+
+    .pred-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+    }
+
+    .pred-word {
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--sumi-ink);
+    }
+
+    .pred-prob-pct {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--matcha);
+      font-size: 12px;
+    }
+
+    .pred-bar-track {
+      height: 4px;
+      background: var(--border-stone);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .pred-bar-fill {
+      height: 100%;
+      background: var(--matcha);
+      border-radius: 2px;
+    }
+
+    .pred-meta-sub {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted-ash);
+      font-family: var(--font-mono);
+    }
+
+    /* ==========================================================================
+       MODAL / DRAWER: Direct Safetensors Memory Lookup
+       ========================================================================== */
+    .zen-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 26, 26, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    .zen-modal-overlay.open {
+      display: flex;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .zen-modal-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 14px;
+      width: 90%;
+      max-width: 680px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-modal);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .zen-modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-stone);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--washi-bg);
+    }
+
+    .zen-modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .zen-modal-footer {
+      padding: 14px 24px;
+      border-top: 1px solid var(--border-stone);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: var(--washi-bg);
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted-ash);
+    }
+
+    .btn-close-modal:hover {
+      color: var(--sumi-ink);
+    }
+
+    .mini-coords-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+      gap: 6px;
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .coord-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 4px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .coord-idx {
+      font-size: 9px;
+      color: var(--muted-ash);
+    }
+
+    .coord-val {
+      font-weight: 600;
+      color: var(--sumi-ink);
+    }
+
+    /* ==========================================================================
+       TAB 2: Layer Deep-Dive & Tensor Inspector
+       ========================================================================== */
+    .inspector-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .layer-selector-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 720px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .layer-select-item {
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--charcoal);
+      transition: all 0.15s;
+      background: var(--card-bg);
+    }
+
+    .layer-select-item:hover {
+      background: var(--card-subtle);
+      color: var(--sumi-ink);
+    }
+
+    .layer-select-item.selected {
+      background: #FFFFFF;
+      border-color: var(--matcha);
+      color: var(--sumi-ink);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(74, 107, 83, 0.12);
+    }
+
+    .layer-select-item .pill-idx {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted-ash);
+    }
+
+    .inspector-content {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .plain-english-callout {
+      background: var(--matcha-subtle);
+      border: 1px solid var(--matcha-border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .callout-icon {
+      color: var(--matcha);
+      font-size: 16px;
+      margin-top: 1px;
+    }
+
+    .callout-text h5 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--matcha);
+      margin-bottom: 3px;
+    }
+
+    .callout-text p {
+      font-size: 13px;
+      color: var(--charcoal);
+      line-height: 1.45;
+    }
+
+    .token-selector-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+
+    .token-pos-pill {
+      background: var(--card-subtle);
+      border: 1px solid var(--border-stone);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--charcoal);
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .token-pos-pill:hover {
+      border-color: var(--border-focus);
+      color: var(--sumi-ink);
+    }
+
+    .token-pos-pill.active {
+      background: var(--slate-indigo);
+      color: #FFFFFF;
+      border-color: var(--slate-indigo);
+      font-weight: 600;
+    }
+
+    .vector-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat-metric-card {
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-metric-card .stat-label {
+      font-size: 11px;
+      color: var(--muted-ash);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .stat-metric-card .stat-val {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+    }
+
+    .heatmap-section {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .heatmap-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted-ash);
+    }
+
+    .legend-bar {
+      width: 90px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, var(--terracotta), #F3F0EA, var(--matcha));
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(24, 1fr);
+      gap: 3px;
+      background: var(--washi-bg);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-stone);
+    }
+
+    .heatmap-cell {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      background: #E5E0D8;
+      cursor: crosshair;
+      transition: transform 0.1s ease;
+    }
+
+    .heatmap-cell:hover {
+      transform: scale(1.4);
+      z-index: 5;
+      outline: 1.5px solid var(--sumi-ink);
+    }
+
+    .heatmap-tooltip-panel {
+      background: var(--card-subtle);
+      border: 1px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--sumi-ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sample-vector-tray {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .sample-pill {
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--charcoal);
+    }
+
+    .sample-pill strong {
+      color: var(--sumi-ink);
+    }
+
+    /* ==========================================================================
+       TAB 3: Conversational Playground
+       ========================================================================== */
+    .chat-layout {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 160px);
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 12px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-stone);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--washi-bg);
+    }
+
+    .chat-body-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-bubble-container {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+    }
+
+    .chat-bubble-container.user {
+      align-self: flex-end;
+    }
+
+    .chat-bubble-container.assistant {
+      align-self: flex-start;
+    }
+
+    .chat-bubble {
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .chat-bubble-container.user .chat-bubble {
+      background: var(--slate-indigo);
+      color: #FFFFFF;
+      border-bottom-right-radius: 3px;
+    }
+
+    .chat-bubble-container.assistant .chat-bubble {
+      background: var(--card-subtle);
+      color: var(--sumi-ink);
+      border: 1px solid var(--border-stone);
+      border-bottom-left-radius: 3px;
+    }
+
+    .chat-meta-bar {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted-ash);
+      margin-top: 4px;
+      display: flex;
+      gap: 8px;
+      padding: 0 4px;
+    }
+
+    .chat-input-container {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-stone);
+      display: flex;
+      gap: 12px;
+      background: #FFFFFF;
+    }
+
+    /* ==========================================================================
+       TAB 4: Interactive Step-by-Step Deck
+       ========================================================================== */
+    .deck-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .deck-stepper-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 10px;
+      padding: 10px 18px;
+    }
+
+    .deck-step-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .deck-step-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--charcoal);
+      cursor: pointer;
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      transition: all 0.15s;
+    }
+
+    .deck-step-dot.active {
+      background: var(--slate-indigo);
+      color: #FFFFFF;
+      border-color: var(--slate-indigo);
+      font-weight: 600;
+    }
+
+    .deck-slide {
+      display: none;
+      animation: tabFadeIn 0.25s ease-out;
+    }
+
+    .deck-slide.active {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .deck-interactive-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 14px;
+      padding: 32px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .deck-card-hero {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      color: var(--sumi-ink);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .deck-card-number-badge {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      background: var(--matcha-subtle);
+      color: var(--matcha);
+      border: 1px solid var(--matcha-border);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .deck-analogy-box {
+      background: var(--washi-bg);
+      border-left: 4px solid var(--matcha);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      font-size: 14px;
+      color: var(--charcoal);
+      line-height: 1.55;
+    }
+
+    .deck-visual-diagram {
+      background: var(--card-subtle);
+      border: 1px solid var(--border-stone);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .diagram-pill {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--slate-indigo);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .diagram-arrow {
+      color: var(--muted-ash);
+      font-size: 18px;
+    }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--matcha);
+      animation: pulseAnim 1.4s infinite;
+    }
+
+    /* Interactive Self-Attention Visualization (Step 3) */
+    .att-interactive-wrap {
+      position: relative;
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .att-canvas-container {
+      position: relative;
+      width: 100%;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .att-svg-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .att-words-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .att-word-card {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-stone);
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .att-word-card:hover {
+      border-color: var(--matcha);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(74, 107, 83, 0.12);
+    }
+
+    .att-word-card.query-active {
+      background: #FFFFFF;
+      border-color: var(--matcha);
+      box-shadow: 0 0 0 3px var(--matcha-subtle), 0 6px 16px rgba(74, 107, 83, 0.15);
+      transform: translateY(-3px);
+    }
+
+    .att-word-text {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--sumi-ink);
+    }
+
+    .att-tag-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .att-tag-query {
+      background: var(--matcha-subtle);
+      color: var(--matcha);
+      border: 1px solid var(--matcha-border);
+    }
+
+    .att-tag-key {
+      background: var(--card-subtle);
+      color: var(--slate-indigo);
+      border: 1px solid var(--border-stone);
+    }
+
+    .att-score-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-ash);
+    }
+
+    .att-word-card.query-active .att-score-text {
+      color: var(--matcha);
+    }
+
+    /* Vector Absorption Panel */
+    .att-absorption-panel {
+      background: #FFFFFF;
+      border: 1px solid var(--border-stone);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .att-absorption-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+    }
+
+    .att-576-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(36, 1fr);
+      gap: 2px;
+      background: var(--washi-bg);
+      border: 1px solid var(--border-stone);
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .att-cell-576 {
+      aspect-ratio: 1;
+      border-radius: 1px;
+      background: #E5E0D8;
+      transition: background-color 0.4s ease, transform 0.2s ease;
+    }
+
+    @keyframes pulseAnim {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Top Zen Navigation Bar -->
+  <header class="zen-nav">
+    <div class="nav-brand">
+      <div class="brand-mark">文</div>
+      <div class="brand-name">SmolLM2-135M Dissection Lab</div>
+      <span class="brand-tag">30 Layers &bull; 576-Dim</span>
+    </div>
+
+    <!-- 4 Clean Navigation Tabs -->
+    <nav class="tabs-group">
+      <button class="tab-btn active" data-tab="tab-simulator">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        <span>Token Flow & Simulator</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-inspector">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <span>Layer Deep-Dive & Tensor Inspector</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-playground">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Conversational Playground</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-guide">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>First-Principles Guide</span>
+      </button>
+    </nav>
+
+    <div class="nav-status">
+      <span style="display: flex; align-items: center; gap: 6px;">
+        <span class="status-indicator"></span>
+        <span id="nav-device-text">CPU RAM: </span>
+        <strong id="nav-ram-val">-- MB</strong>
+      </span>
+      <span style="color: var(--border-stone);">|</span>
+      <span>Params: <strong>134.5M</strong></span>
+    </div>
+  </header>
+
+  <!-- Main Content Workspace -->
+  <main class="zen-workspace">
+
+    <!-- =====================================================================
+         TAB 1: Token Flow & Simulator
+         ===================================================================== -->
+    <section class="tab-view active" id="tab-simulator">
+      <div class="sim-layout">
+        <!-- Input & Presets Bar -->
+        <div class="prompt-control-bar">
+          <div class="prompt-input-row">
+            <input type="text" id="sim-prompt-input" class="zen-input" placeholder="Enter text to observe token transformation across 33 stages..." value="The moon reflects upon silent waters">
+            <button class="zen-btn-primary" id="btn-run-simulation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>Simulate Pipeline</span>
+            </button>
+          </div>
+          <div class="presets-row">
+            <span>Sample Prompts:</span>
+            <div class="preset-pill" data-prompt="The moon reflects upon silent waters">The moon reflects upon silent waters</div>
+            <div class="preset-pill" data-prompt="Knowledge begins with curiosity">Knowledge begins with curiosity</div>
+            <div class="preset-pill" data-prompt="In the heart of winter, spring awaits">In the heart of winter, spring awaits</div>
+            <div class="preset-pill" data-prompt="The swift river carves through stone">The swift river carves through stone</div>
+          </div>
+        </div>
+
+        <!-- 3-Column Pipeline Simulation Layout -->
+        <div class="sim-pipeline-grid">
+
+          <!-- Column 1: Input Tokens & Byte Breakdown (CLICKABLE) -->
+          <div class="zen-card">
+            <div class="zen-card-header">
+              <span class="zen-card-title">
+                1. Token Stream
+                <span class="zen-tooltip-trigger">ⓘ
+                  <span class="zen-tooltip-box">
+                    <strong>Tokenization</strong>
+                    Words are split into tokens and looked up in the vocabulary table. Click any token card to view its exact row in model.safetensors!
+                  </span>
+                </span>
+              </span>
+              <span id="token-count-badge" style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-ash);">-- tokens</span>
+            </div>
+            <div class="zen-card-body">
+              <div class="tokens-list" id="sim-tokens-list">
+                <div style="color: var(--muted-ash); font-size: 13px; text-align: center; padding: 24px 0;">
+                  Click "Simulate Pipeline" above to tokenize input.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Architecture Layers Sequence (Embedding -> 30 Blocks -> LM Head) -->
+          <div class="zen-card">
+            <div class="zen-card-header">
+              <span class="zen-card-title">
+                2. Transformation Pipeline
+                <span class="zen-tooltip-trigger">ⓘ
+                  <span class="zen-tooltip-box">
+                    <strong>Transformer Block</strong>
+                    A reasoning layer where words look at each other and update their meanings based on context.
+                  </span>
+                </span>
+              </span>
+              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--matcha);">Click any layer to inspect</span>
+            </div>
+            <div class="zen-card-body" style="padding: 16px;">
+              <div class="flow-spine-container" id="sim-spine-container">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Predictions & Next-Token Distribution -->
+          <div class="zen-card">
+            <div class="zen-card-header">
+              <span class="zen-card-title">
+                3. Next-Word Predictions
+                <span class="zen-tooltip-trigger">ⓘ
+                  <span class="zen-tooltip-box">
+                    <strong>Softmax & Logits</strong>
+                    Logit: Raw confidence score.<br>Softmax: Turns raw scores into calibrated percentages that total 100%.
+                  </span>
+                </span>
+              </span>
+              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--muted-ash);">Top 10 Softmax</span>
+            </div>
+            <div class="zen-card-body">
+              <div class="pred-list" id="sim-predictions-list">
+                <div style="color: var(--muted-ash); font-size: 13px; text-align: center; padding: 24px 0;">
+                  Output probabilities will appear after simulation.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODAL / DRAWER: Direct Safetensors Memory Lookup
+         ===================================================================== -->
+    <div class="zen-modal-overlay" id="safetensors-modal">
+      <div class="zen-modal-card">
+        <div class="zen-modal-header">
+          <div>
+            <h3 style="font-family: var(--font-serif); font-size: 17px; color: var(--sumi-ink);">Direct Safetensors Memory Lookup</h3>
+            <div style="font-size: 11px; color: var(--muted-ash); font-family: var(--font-mono);" id="modal-token-subhead">
+              Token Row Extraction
+            </div>
+          </div>
+          <button class="btn-close-modal" id="btn-close-safetensors">&times;</button>
+        </div>
+        <div class="zen-modal-body">
+          <!-- Plain-English Explanation -->
+          <div class="plain-english-callout">
+            <div class="callout-icon">🔍</div>
+            <div class="callout-text">
+              <h5>How the Model Reads This Token:</h5>
+              <p id="modal-plain-explanation">
+                The model goes directly to <strong>Row #</strong> in <code>model.safetensors</code> (tensor: <code>model.embed_tokens.weight</code>). That row contains <strong>576 numerical coordinates</strong> that define this word's position in geometry.
+              </p>
+            </div>
+          </div>
+
+          <!-- Hex Byte Translation -->
+          <div style="background: var(--washi-bg); border: 1px solid var(--border-stone); border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+            <span style="color: var(--charcoal);">
+              Memory UTF-8 Bytes:
+              <span class="zen-tooltip-trigger" style="margin-left: 4px;">ⓘ
+                <span class="zen-tooltip-box">
+                  <strong>Hexadecimal Bytes</strong>
+                  0x20 0x61... Hexadecimal bytes representing individual characters in memory. 0x20 is the space character!
+                </span>
+              </span>
+            </span>
+            <span id="modal-hex-bytes" style="font-family: var(--font-mono); font-weight: 600; color: var(--slate-indigo);">--</span>
+          </div>
+
+          <!-- Coordinates preview -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--sumi-ink);">First 32 Coordinate Dimensions:</span>
+              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--muted-ash);">32 of 576 floats</span>
+            </div>
+            <div class="mini-coords-grid" id="modal-coords-grid">
+              <!-- Dynamically populated coordinates -->
+            </div>
+          </div>
+        </div>
+        <div class="zen-modal-footer">
+          <button class="zen-btn-primary" id="modal-btn-view-inspector">
+            <span>View Full 576 Dimensions in Layer Inspector &rarr;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         TAB 2: Layer Deep-Dive & Tensor Inspector
+         ===================================================================== -->
+    <section class="tab-view" id="tab-inspector">
+      <div class="inspector-layout">
+
+        <!-- Left: Layer Hierarchy Tree -->
+        <div class="zen-card">
+          <div class="zen-card-header">
+            <span class="zen-card-title">Layer Directory</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-ash);">33 Stages</span>
+          </div>
+          <div class="zen-card-body" style="padding: 10px;">
+            <div class="layer-selector-list" id="inspector-layer-list">
+              <!-- Dynamically populated layers -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Layer Deep Dive View -->
+        <div class="inspector-content">
+
+          <!-- Layer Title and Intuitive Explanation -->
+          <div class="zen-card">
+            <div class="zen-card-header">
+              <div>
+                <span class="zen-card-title" id="inspect-layer-name">Embedding Layer</span>
+                <span id="inspect-layer-type" style="margin-left: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--muted-ash);">Embedding(49152, 576)</span>
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 12px; color: var(--matcha);" id="inspect-layer-mem">
+                54.00 MB FP16
+              </div>
+            </div>
+            <div class="zen-card-body" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Non-technical Intuitive Explanation Box -->
+              <div class="plain-english-callout">
+                <div class="callout-icon">💡</div>
+                <div class="callout-text">
+                  <h5 id="inspect-explanation-title">What happens here?</h5>
+                  <p id="inspect-explanation-text">
+                    This layer translates discrete integer word IDs into 576 continuous geometric coordinates in vocabulary space, creating the initial vectors for each word.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Token sequence selector -->
+              <div>
+                <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--charcoal);">
+                  Select Token in Sequence to Inspect:
+                </div>
+                <div class="token-selector-bar" id="inspect-token-bar">
+                  <!-- Token pills -->
+                </div>
+              </div>
+
+              <!-- Vector Statistics Summary -->
+              <div class="vector-stats-row">
+                <div class="stat-metric-card">
+                  <span class="stat-label">Vector Mean</span>
+                  <span class="stat-val" id="stat-vec-mean">--</span>
+                </div>
+                <div class="stat-metric-card">
+                  <span class="stat-label">Std Deviation</span>
+                  <span class="stat-val" id="stat-vec-std">--</span>
+                </div>
+                <div class="stat-metric-card">
+                  <span class="stat-label">Min Activation</span>
+                  <span class="stat-val" id="stat-vec-min">--</span>
+                </div>
+                <div class="stat-metric-card">
+                  <span class="stat-label">Max Activation</span>
+                  <span class="stat-val" id="stat-vec-max">--</span>
+                </div>
+              </div>
+
+              <!-- 576-Dimension Vector Heatmap -->
+              <div class="heatmap-section">
+                <div class="heatmap-header-row">
+                  <div>
+                    <span style="font-size: 13.5px; font-weight: 600; color: var(--sumi-ink);">
+                      576-Dimensional Context Coordinate Heatmap
+                      <span class="zen-tooltip-trigger">ⓘ
+                        <span class="zen-tooltip-box">
+                          <strong>[1, 7, 576] Shape</strong>
+                          1 sentence, 7 words/pieces, each described by 576 coordinate numbers in high-dimensional space!
+                        </span>
+                      </span>
+                    </span>
+                    <div style="font-size: 11px; color: var(--muted-ash);">Hover over any block to reveal its exact coordinate index (0–575) and float activation.</div>
+                  </div>
+                  <div class="heatmap-legend">
+                    <span>Negative (-3.0)</span>
+                    <div class="legend-bar"></div>
+                    <span>Positive (+3.0)</span>
+                  </div>
+                </div>
+
+                <div class="heatmap-grid" id="vector-heatmap-grid">
+                  <!-- 576 cells (24x24) -->
+                </div>
+
+                <div class="heatmap-tooltip-panel" id="heatmap-tooltip">
+                  <span>Hover over any coordinate cell above to inspect value</span>
+                  <span id="tooltip-cell-info" style="color: var(--matcha); font-weight: 600;">--</span>
+                </div>
+              </div>
+
+              <!-- 16-sample raw values display -->
+              <div>
+                <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--charcoal);">
+                  Raw Coordinate Slice (First 16 Dimensions):
+                </div>
+                <div class="sample-vector-tray" id="inspect-sample-vector">
+                  <!-- 16 pills -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         TAB 3: Conversational Playground
+         ===================================================================== -->
+    <section class="tab-view" id="tab-playground">
+      <div class="chat-layout">
+        <div class="chat-header">
+          <div>
+            <span class="zen-card-title">SmolLM2-135M Conversational Playground</span>
+            <div style="font-size: 11px; color: var(--muted-ash);">Standard inference with anti-looping penalties (repetition_penalty=1.2)</div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; font-size: 12px; font-family: var(--font-mono);">
+            <span>Temp: <strong id="chat-temp-val">0.7</strong></span>
+            <span>Max Tokens: <strong id="chat-tokens-val">60</strong></span>
+          </div>
+        </div>
+
+        <div class="chat-body-scroll" id="chat-history">
+          <div class="chat-bubble-container assistant">
+            <div class="chat-bubble">
+              Welcome. I am SmolLM2-135M. Speak freely or test questions to observe how the language model produces text in real-time.
+            </div>
+            <div class="chat-meta-bar">System Ready &bull; Anti-repetition enabled</div>
+          </div>
+        </div>
+
+        <div class="chat-input-container">
+          <input type="text" id="play-input" class="zen-input" placeholder="Type a message and press Enter..." autocomplete="off">
+          <button class="zen-btn-primary" id="play-send-btn">
+            <span>Send</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         TAB 4: First-Principles Interactive Card Deck
+         ===================================================================== -->
+    <section class="tab-view" id="tab-guide">
+      <div class="deck-container">
+        <!-- Deck Stepper Navigation -->
+        <div class="deck-stepper-nav">
+          <div class="deck-step-tabs">
+            <div class="deck-step-dot active" data-deck-step="0">1. Words to Numbers</div>
+            <div class="deck-step-dot" data-deck-step="1">2. Numbers to Coordinates</div>
+            <div class="deck-step-dot" data-deck-step="2">3. Words Talking to Words</div>
+            <div class="deck-step-dot" data-deck-step="3">4. Picking the Winner</div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="preset-pill" id="deck-prev-btn">&larr; Prev</button>
+            <button class="preset-pill" id="deck-next-btn">Next &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Card 1: Words to Numbers (Tokenization) -->
+        <div class="deck-slide active" id="deck-slide-0">
+          <div class="deck-interactive-card">
+            <div class="deck-card-hero">
+              <span class="deck-card-number-badge">Step 1</span>
+              <span>Words to Numbers: Tokenization</span>
+            </div>
+            <div class="deck-analogy-box">
+              <strong>The Plain English Reality:</strong> Computers cannot read letters like 'H', 'e', 'l', 'l', 'o'. Before anything happens, the sentence is sliced into frequent letter pieces called <em>tokens</em>, and each piece is assigned a unique integer ID from 0 to 49,151.
+            </div>
+            <div class="deck-visual-diagram">
+              <div class="diagram-pill">"The" &rarr; ID: 504</div>
+              <div class="diagram-arrow">&rarr;</div>
+              <div class="diagram-pill">" moon" &rarr; ID: 6128</div>
+              <div class="diagram-arrow">&rarr;</div>
+              <div class="diagram-pill">" reflects" &rarr; ID: 15478</div>
+            </div>
+            <div style="font-size: 13px; color: var(--charcoal); line-height: 1.6;">
+              SmolLM2-135M holds an internal dictionary of <strong>49,152 vocabulary tokens</strong>. Notice the space character <code>0x20</code> at the beginning of words—in tokenizers, leading spaces are part of the token itself!
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Numbers to Coordinates (Safetensors Row Lookup) -->
+        <div class="deck-slide" id="deck-slide-1">
+          <div class="deck-interactive-card">
+            <div class="deck-card-hero">
+              <span class="deck-card-number-badge">Step 2</span>
+              <span>Numbers to Coordinates: Safetensors Row Lookup</span>
+            </div>
+            <div class="deck-analogy-box">
+              <strong>The Plain English Reality:</strong> An ID like <code>#6128</code> has no intrinsic meaning. To give it meaning, the model opens its <code>model.safetensors</code> weight file, travels directly to <strong>Row 6128</strong>, and copies out <strong>576 numbers</strong>.
+            </div>
+            <div class="deck-visual-diagram">
+              <div class="diagram-pill">Token ID #6128</div>
+              <div class="diagram-arrow">&rarr; Lookup Row 6128 &rarr;</div>
+              <div class="diagram-pill">[+0.12, -0.04, +0.81, ..., -0.22] (576 Floats)</div>
+            </div>
+            <div style="font-size: 13px; color: var(--charcoal); line-height: 1.6;">
+              This 576-dimensional vector acts like a GPS coordinate inside the model's mind. Related words like "ocean" and "water" land physically close to each other in this 576-dimensional geometry.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Words Talking to Words (Self-Attention) -->
+        <div class="deck-slide" id="deck-slide-2">
+          <div class="deck-interactive-card">
+            <div class="deck-card-hero">
+              <span class="deck-card-number-badge">Step 3</span>
+              <span>Words Talking to Words: Interactive Self-Attention</span>
+            </div>
+            <div class="deck-analogy-box">
+              <strong>Interactive Context Blending:</strong> Click any word in the sequence below. That word becomes the <strong>Query</strong> and queries the other 4 words (<strong>Keys</strong>). Connecting curved arrows show the <strong>Attention Scores</strong> (opacity & thickness represent strength of connection). Below, watch the word's <strong>576-dimensional vector</strong> absorb context values from its neighbors!
+            </div>
+
+            <!-- Interactive Self-Attention Canvas & Words Row -->
+            <div class="att-interactive-wrap">
+              <div class="att-canvas-container" id="att-canvas-box">
+                <!-- SVG Connecting Arrows Overlay -->
+                <svg class="att-svg-canvas" id="att-svg-arrows">
+                  <defs>
+                    <marker id="att-arrowhead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1 L 8 5 L 0 9 z" fill="#4A6B53"/>
+                    </marker>
+                    <marker id="att-arrowhead-dim" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1 L 8 5 L 0 9 z" fill="#787570"/>
+                    </marker>
+                  </defs>
+                  <g id="att-svg-paths-group"></g>
+                  <g id="att-svg-labels-group"></g>
+                </svg>
+
+                <!-- 5 Words Grid -->
+                <div class="att-words-row" id="att-words-row">
+                  <!-- Word 0: The -->
+                  <div class="att-word-card" data-word-idx="0">
+                    <span class="att-tag-badge att-tag-key" id="att-tag-0">Key</span>
+                    <span class="att-word-text">"The"</span>
+                    <span class="att-score-text" id="att-score-0">--%</span>
+                  </div>
+                  <!-- Word 1: river -->
+                  <div class="att-word-card" data-word-idx="1">
+                    <span class="att-tag-badge att-tag-key" id="att-tag-1">Key</span>
+                    <span class="att-word-text">"river"</span>
+                    <span class="att-score-text" id="att-score-1">--%</span>
+                  </div>
+                  <!-- Word 2: bank (default Query) -->
+                  <div class="att-word-card query-active" data-word-idx="2">
+                    <span class="att-tag-badge att-tag-query" id="att-tag-2">Query</span>
+                    <span class="att-word-text">"bank"</span>
+                    <span class="att-score-text" id="att-score-2">Focus</span>
+                  </div>
+                  <!-- Word 3: was -->
+                  <div class="att-word-card" data-word-idx="3">
+                    <span class="att-tag-badge att-tag-key" id="att-tag-3">Key</span>
+                    <span class="att-word-text">"was"</span>
+                    <span class="att-score-text" id="att-score-3">--%</span>
+                  </div>
+                  <!-- Word 4: silent -->
+                  <div class="att-word-card" data-word-idx="4">
+                    <span class="att-tag-badge att-tag-key" id="att-tag-4">Key</span>
+                    <span class="att-word-text">"silent"</span>
+                    <span class="att-score-text" id="att-score-4">--%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vector Absorption Panel (Below Grid) -->
+              <div class="att-absorption-panel">
+                <div class="att-absorption-header">
+                  <div>
+                    <span style="font-weight: 600; color: var(--sumi-ink);" id="att-absorption-title">
+                      Vector Context Blending: 576 Dimensions for "bank"
+                    </span>
+                    <div style="font-size: 11px; color: var(--muted-ash);" id="att-absorption-subtitle">
+                      Absorbing Value data from neighbors (Primary influencer: "river" at 64%)
+                    </div>
+                  </div>
+                  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--matcha);" id="att-vector-shift-badge">
+                    &Delta; Context Vector: +0.412
+                  </div>
+                </div>
+
+                <!-- 576-Dimension Mini-Grid showing color absorption wave -->
+                <div class="att-576-mini-grid" id="att-576-grid">
+                  <!-- 576 cells (36 cols x 16 rows) -->
+                </div>
+
+                <div style="font-size: 12.5px; color: var(--charcoal); line-height: 1.5;" id="att-explanation-narrative">
+                  <strong>What happened inside the 576 dimensions:</strong> When <em>"bank"</em> attends 64% to <em>"river"</em>, the nature and water values are mathematically added into its coordinates. The word's numerical vector is now primed to mean a <strong>riverbank</strong> instead of a money bank!
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size: 13px; color: var(--charcoal); line-height: 1.6;">
+              SmolLM2 runs this mathematical process simultaneously across <strong>9 Attention Heads</strong> in each of its <strong>30 Transformer Blocks</strong>, continuously refining the 576 dimensions with deeper context.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Picking the Winner (Softmax & Probabilities) -->
+        <div class="deck-slide" id="deck-slide-3">
+          <div class="deck-interactive-card">
+            <div class="deck-card-hero">
+              <span class="deck-card-number-badge">Step 4</span>
+              <span>Picking the Winner: Softmax & Probabilities</span>
+            </div>
+            <div class="deck-analogy-box">
+              <strong>The Plain English Reality:</strong> After passing through all 30 blocks, the final 576-dimensional vector contains the rich context of the entire sentence. The LM Head multiplies this vector against all 49,152 words to score who is the best fit to come next.
+            </div>
+            <div class="deck-visual-diagram">
+              <div class="diagram-pill">Final Vector (576)</div>
+              <div class="diagram-arrow">&times; LM Head &rarr;</div>
+              <div class="diagram-pill">49,152 Raw Logits</div>
+              <div class="diagram-arrow">&rarr; Softmax &rarr;</div>
+              <div class="diagram-pill">Probabilities (Sum = 100%)</div>
+            </div>
+            <div style="font-size: 13px; color: var(--charcoal); line-height: 1.6;">
+              The <strong>Softmax</strong> formula ensures all candidate scores are positive and add up to 100%. The model samples from the highest probability tokens to print the next word!
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // STATE & VARIABLES
+    // =========================================================================
+    let currentSimData = null;
+    let selectedLayerIdx = 0;
+    let selectedTokenPos = 0;
+    let isSimulating = false;
+    let currentDeckStep = 0;
+
+    const LAYER_EXPLANATIONS = {
+      0: {
+        title: "Stage 0: Vocabulary Lookup (Embedding)",
+        text: "Translates discrete word IDs into 576-dimensional semantic coordinates. At this stage, words have isolated dictionary meanings with no contextual awareness yet."
+      },
+      31: {
+        title: "Stage 31: Final RMS Normalization",
+        text: "Stabilizes the final combined hidden state across all 576 dimensions, ensuring activation values are calibrated before projecting into vocabulary logits."
+      },
+      32: {
+        title: "Stage 32: Vocabulary Projection (LM Head)",
+        text: "Multiplies the 576-dimensional context vector across all 49,152 candidate words in the dictionary to produce likelihood scores for what word should follow next."
+      }
+    };
+
+    function getBlockExplanation(blockNum) {
+      if (blockNum < 5) {
+        return {
+          title: `Transformer Block ${blockNum}: Low-Level Syntax & Grammar`,
+          text: `In these early layers, attention heads primarily resolve parts of speech, punctuation ties, and immediate grammatical connections between adjacent words.`
+        };
+      } else if (blockNum < 20) {
+        return {
+          title: `Transformer Block ${blockNum}: Mid-Level Context Blending`,
+          text: `The representations undergo deep contextual enrichment. SwiGLU MLP circuits retrieve stored associations, while attention heads route meaning across the entire sentence.`
+        };
+      } else {
+        return {
+          title: `Transformer Block ${blockNum}: High-Level Semantic Refinement`,
+          text: `Final layers refine the representation toward next-token anticipation, narrowing down the 576 coordinates so the LM Head can accurately predict the next word.`
+        };
+      }
+    }
+
+    // =========================================================================
+    // SAFE DOM HELPERS
+    // =========================================================================
+    function safeSetText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function safeSetHtml(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    // =========================================================================
+    // TAB NAVIGATION
+    // =========================================================================
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabViews = document.querySelectorAll('.tab-view');
+
+    function switchTab(tabId) {
+      tabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+      });
+      tabViews.forEach(view => {
+        view.classList.toggle('active', view.id === tabId);
+      });
+
+      if (tabId === 'tab-guide' && currentDeckStep === 2) {
+        setTimeout(() => {
+          renderAttentionVisualization(currentAttentionQueryIdx);
+        }, 60);
+      }
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // =========================================================================
+    // SYSTEM STATUS
+    // =========================================================================
+    async function updateSystemInfo() {
+      try {
+        const res = await fetch('/info');
+        if (res.ok) {
+          const data = await res.json();
+          safeSetText('nav-ram-val', `${data.memory.ram_mb} MB`);
+          safeSetText('nav-device-text', `${data.device.toUpperCase()} (${data.device === 'cuda' ? 'VRAM' : 'RAM'}): `);
+        }
+      } catch (err) {
+        console.warn('System info check:', err);
+      }
+    }
+    updateSystemInfo();
+
+    // =========================================================================
+    // TAB 1: SIMULATOR EXECUTION
+    // =========================================================================
+    const simPromptInput = document.getElementById('sim-prompt-input');
+    const btnRunSim = document.getElementById('btn-run-simulation');
+    const simTokensList = document.getElementById('sim-tokens-list');
+    const simSpineContainer = document.getElementById('sim-spine-container');
+    const simPredsList = document.getElementById('sim-predictions-list');
+
+    // Modal elements
+    const safetensorsModal = document.getElementById('safetensors-modal');
+    const btnCloseSafetensors = document.getElementById('btn-close-safetensors');
+    const modalBtnViewInspector = document.getElementById('modal-btn-view-inspector');
+    let modalSelectedTokenId = null;
+
+    if (btnCloseSafetensors) {
+      btnCloseSafetensors.addEventListener('click', () => {
+        safetensorsModal.classList.remove('open');
+      });
+    }
+    if (safetensorsModal) {
+      safetensorsModal.addEventListener('click', (e) => {
+        if (e.target === safetensorsModal) safetensorsModal.classList.remove('open');
+      });
+    }
+
+    if (modalBtnViewInspector) {
+      modalBtnViewInspector.addEventListener('click', () => {
+        safetensorsModal.classList.remove('open');
+        selectInspectorLayer(0);
+        switchTab('tab-inspector');
+      });
+    }
+
+    // Preset prompts
+    document.querySelectorAll('.preset-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        simPromptInput.value = pill.dataset.prompt;
+        runSimulation();
+      });
+    });
+
+    btnRunSim.addEventListener('click', runSimulation);
+    simPromptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runSimulation();
+    });
+
+    async function runSimulation() {
+      const prompt = simPromptInput.value.trim();
+      if (!prompt || isSimulating) return;
+
+      isSimulating = true;
+      btnRunSim.disabled = true;
+      btnRunSim.innerHTML = `<span class="pulse-dot"></span> Simulating...`;
+
+      try {
+        const res = await fetch('/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) throw new Error('Simulation failed on server.');
+        const data = await res.json();
+        currentSimData = data;
+
+        // Render Clickable Token Stream
+        renderTokenBreakdown(data.token_breakdown);
+        safeSetText('token-count-badge', `${data.token_count} tokens`);
+
+        // Render Top-10 Predictions
+        renderPredictions(data.top_10_candidates);
+
+        // Render Pipeline Spine and Run Step-by-Step Lighting
+        renderSpineNodes(data.layers);
+        await runPipelineLightingAnimation(data.layers);
+
+        // Pre-select embedding layer for Tab 2
+        selectInspectorLayer(0);
+
+      } catch (err) {
+        alert('Simulation error: ' + err.message);
+      } finally {
+        isSimulating = false;
+        btnRunSim.disabled = false;
+        btnRunSim.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Simulate Pipeline</span>
+        `;
+        updateSystemInfo();
+      }
+    }
+
+    function renderTokenBreakdown(tokens) {
+      simTokensList.innerHTML = '';
+      tokens.forEach((t, idx) => {
+        const row = document.createElement('div');
+        row.className = 'token-card-row';
+        row.title = "Click to inspect direct Safetensors Row Memory!";
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-ash);">#${t.index}</span>
+            <span class="token-text-badge">${escapeHtml(t.token_str)}</span>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; color: var(--slate-indigo);">ID: ${t.id}</div>
+            <div class="token-row-hint">
+              <span>Inspect Safetensors Row &rarr;</span>
+            </div>
+          </div>
+        `;
+
+        // Click to open Direct Safetensors Memory Lookup Modal
+        row.addEventListener('click', () => {
+          openSafetensorsModal(t.id, t.token_str, t.hex_repr, idx);
+        });
+
+        simTokensList.appendChild(row);
+      });
+    }
+
+    async function openSafetensorsModal(tokenId, tokenStr, hexRepr, posIdx) {
+      modalSelectedTokenId = tokenId;
+      selectedTokenPos = posIdx;
+
+      safeSetText('modal-token-subhead', `Token '${tokenStr}' &bull; Vocabulary Index: ${tokenId}`);
+      safeSetHtml('modal-plain-explanation', `The model goes directly to <strong>Row ${tokenId}</strong> in <code>model.safetensors</code> (tensor: <code>model.embed_tokens.weight</code>). That row contains <strong>576 numerical coordinates</strong> representing this token's baseline position in the model's vocabulary space.`);
+      safeSetText('modal-hex-bytes', hexRepr ? hexRepr.join(' ') : '--');
+
+      const grid = document.getElementById('modal-coords-grid');
+      grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--muted-ash); padding: 12px; text-align: center;">Fetching row from Safetensors memory...</div>';
+      safetensorsModal.classList.add('open');
+
+      try {
+        const res = await fetch(`/embedding/${tokenId}`);
+        if (res.ok) {
+          const data = await res.json();
+          grid.innerHTML = '';
+          data.first_32.forEach((val, i) => {
+            const item = document.createElement('div');
+            item.className = 'coord-item';
+            item.innerHTML = `
+              <span class="coord-idx">d${i}</span>
+              <span class="coord-val" style="color: ${val >= 0 ? 'var(--matcha)' : 'var(--terracotta)'}">${val > 0 ? '+' : ''}${val}</span>
+            `;
+            grid.appendChild(item);
+          });
+        }
+      } catch (err) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; color: var(--terracotta); padding: 12px;">Failed loading Safetensors row: ${err.message}</div>`;
+      }
+    }
+
+    function renderPredictions(candidates) {
+      simPredsList.innerHTML = '';
+      candidates.forEach(c => {
+        const row = document.createElement('div');
+        row.className = 'pred-row';
+        row.innerHTML = `
+          <div class="pred-header-row">
+            <span class="pred-word">${c.rank}. "${escapeHtml(c.token_str)}"</span>
+            <span class="pred-prob-pct">${c.calibrated_prob}%</span>
+          </div>
+          <div class="pred-bar-track">
+            <div class="pred-bar-fill" style="width: ${Math.min(c.calibrated_prob, 100)}%;"></div>
+          </div>
+          <div class="pred-meta-sub">
+            <span>ID: ${c.token_id}</span>
+            <span class="zen-tooltip-trigger">Logit: ${c.raw_logit}
+              <span class="zen-tooltip-box">Raw unnormalized score before Softmax. Higher numbers mean greater confidence!</span>
+            </span>
+          </div>
+        `;
+        simPredsList.appendChild(row);
+      });
+    }
+
+    function renderSpineNodes(layers) {
+      simSpineContainer.innerHTML = '';
+      layers.forEach((layer, idx) => {
+        const node = document.createElement('div');
+        node.className = 'spine-node';
+        node.id = `spine-node-${idx}`;
+        node.dataset.layerIdx = idx;
+
+        let shapeDisplay = JSON.stringify(layer.output_shape);
+
+        node.innerHTML = `
+          <div class="node-title-box">
+            <h4>${layer.layer_name}</h4>
+            <span>${layer.layer_type.split('(')[0]}</span>
+          </div>
+          <div>
+            <span class="node-shape-pill zen-tooltip-trigger">
+              ${shapeDisplay}
+              <span class="zen-tooltip-box">
+                <strong>Tensor Shape:</strong> [1 batch, ${layer.output_shape ? layer.output_shape[1] : 'N'} tokens, ${layer.output_shape ? layer.output_shape[2] : '576'} dimensions]
+              </span>
+            </span>
+          </div>
+          <div class="node-meta-box">
+            <div class="ram">${layer.memory_mb_fp16} MB</div>
+            <div class="inspect-link">
+              <span>Inspect</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        `;
+
+        node.addEventListener('click', () => {
+          selectInspectorLayer(idx);
+          switchTab('tab-inspector');
+        });
+
+        simSpineContainer.appendChild(node);
+      });
+    }
+
+    async function runPipelineLightingAnimation(layers) {
+      for (let i = 0; i < layers.length; i++) {
+        const node = document.getElementById(`spine-node-${i}`);
+        if (node) {
+          node.classList.add('active-wave');
+          node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        await new Promise(r => setTimeout(r, 45));
+      }
+    }
+
+    // =========================================================================
+    // TAB 2: LAYER DEEP-DIVE & TENSOR INSPECTOR
+    // =========================================================================
+    const inspectorLayerList = document.getElementById('inspector-layer-list');
+    const inspectTokenBar = document.getElementById('inspect-token-bar');
+    const vectorHeatmapGrid = document.getElementById('vector-heatmap-grid');
+    const inspectSampleVector = document.getElementById('inspect-sample-vector');
+
+    function buildInspectorLayerDirectory() {
+      inspectorLayerList.innerHTML = '';
+      if (!currentSimData || !currentSimData.layers) {
+        inspectorLayerList.innerHTML = `<div style="padding: 12px; font-size: 12px; color: var(--muted-ash);">Run a simulation in Tab 1 to populate.</div>`;
+        return;
+      }
+
+      currentSimData.layers.forEach((layer, idx) => {
+        const item = document.createElement('div');
+        item.className = `layer-select-item ${idx === selectedLayerIdx ? 'selected' : ''}`;
+        item.id = `layer-item-${idx}`;
+        item.innerHTML = `
+          <span>${layer.layer_name}</span>
+          <span class="pill-idx">${layer.memory_mb_fp16}MB</span>
+        `;
+
+        item.addEventListener('click', () => {
+          selectInspectorLayer(idx);
+        });
+
+        inspectorLayerList.appendChild(item);
+      });
+    }
+
+    function selectInspectorLayer(layerIdx) {
+      selectedLayerIdx = layerIdx;
+      document.querySelectorAll('.layer-select-item').forEach((el, idx) => {
+        el.classList.toggle('selected', idx === layerIdx);
+      });
+
+      if (!currentSimData || !currentSimData.layers || !currentSimData.layers[layerIdx]) {
+        return;
+      }
+
+      const layer = currentSimData.layers[layerIdx];
+
+      safeSetText('inspect-layer-name', layer.layer_name);
+      safeSetText('inspect-layer-type', layer.layer_type);
+      safeSetText('inspect-layer-mem', `${layer.memory_mb_fp16} MB (FP16) • ${layer.memory_mb_fp32} MB (FP32)`);
+
+      // Explanations
+      let expl;
+      if (layerIdx === 0) {
+        expl = LAYER_EXPLANATIONS[0];
+      } else if (layerIdx === currentSimData.layers.length - 2) {
+        expl = LAYER_EXPLANATIONS[31];
+      } else if (layerIdx === currentSimData.layers.length - 1) {
+        expl = LAYER_EXPLANATIONS[32];
+      } else {
+        expl = getBlockExplanation(layerIdx - 1);
+      }
+      safeSetText('inspect-explanation-title', expl.title);
+      safeSetText('inspect-explanation-text', expl.text);
+
+      renderTokenSelectorBar(layer.token_vectors);
+      renderTokenTensorDetail(selectedTokenPos);
+    }
+
+    function renderTokenSelectorBar(tokenVectors) {
+      inspectTokenBar.innerHTML = '';
+      if (!tokenVectors || tokenVectors.length === 0) return;
+
+      tokenVectors.forEach((tv, pos) => {
+        const pill = document.createElement('div');
+        pill.className = `token-pos-pill ${pos === selectedTokenPos ? 'active' : ''}`;
+        pill.innerHTML = `Pos ${pos}: <strong>"${escapeHtml(tv.token_str)}"</strong>`;
+
+        pill.addEventListener('click', () => {
+          selectedTokenPos = pos;
+          document.querySelectorAll('.token-pos-pill').forEach((p, idx) => {
+            p.classList.toggle('active', idx === pos);
+          });
+          renderTokenTensorDetail(pos);
+        });
+
+        inspectTokenBar.appendChild(pill);
+      });
+    }
+
+    function renderTokenTensorDetail(pos) {
+      if (!currentSimData || !currentSimData.layers[selectedLayerIdx]) return;
+      const layer = currentSimData.layers[selectedLayerIdx];
+      const tokenVectors = layer.token_vectors;
+
+      if (!tokenVectors || !tokenVectors[pos]) return;
+      const tv = tokenVectors[pos];
+
+      safeSetText('stat-vec-mean', tv.mean.toFixed(4));
+      safeSetText('stat-vec-std', tv.std.toFixed(4));
+      safeSetText('stat-vec-min', tv.min.toFixed(4));
+      safeSetText('stat-vec-max', tv.max.toFixed(4));
+
+      render576Heatmap(tv.vector_576);
+
+      inspectSampleVector.innerHTML = '';
+      tv.sample_16.forEach((val, idx) => {
+        const pill = document.createElement('div');
+        pill.className = 'sample-pill';
+        pill.innerHTML = `d${idx}: <strong>${val > 0 ? '+' : ''}${val}</strong>`;
+        inspectSampleVector.appendChild(pill);
+      });
+    }
+
+    function render576Heatmap(vector) {
+      vectorHeatmapGrid.innerHTML = '';
+      if (!vector || vector.length === 0) return;
+
+      const maxAbs = 2.5;
+
+      vector.forEach((val, dimIdx) => {
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+
+        let bg;
+        const norm = Math.max(-1, Math.min(1, val / maxAbs));
+        if (norm >= 0) {
+          bg = `rgba(74, 107, 83, ${0.15 + norm * 0.85})`;
+        } else {
+          bg = `rgba(184, 83, 62, ${0.15 + Math.abs(norm) * 0.85})`;
+        }
+        cell.style.backgroundColor = bg;
+
+        cell.addEventListener('mouseenter', () => {
+          safeSetHtml('tooltip-cell-info', `Dim <strong>#${dimIdx}</strong> = <span style="color: ${val >= 0 ? 'var(--matcha)' : 'var(--terracotta)'}; font-weight: bold;">${val > 0 ? '+' : ''}${val}</span>`);
+        });
+
+        vectorHeatmapGrid.appendChild(cell);
+      });
+    }
+
+    // =========================================================================
+    // TAB 3: CONVERSATIONAL PLAYGROUND
+    // =========================================================================
+    const playInput = document.getElementById('play-input');
+    const playSendBtn = document.getElementById('play-send-btn');
+    const chatHistory = document.getElementById('chat-history');
+
+    playSendBtn.addEventListener('click', handlePlaygroundChat);
+    playInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handlePlaygroundChat();
+    });
+
+    async function handlePlaygroundChat() {
+      const prompt = playInput.value.trim();
+      if (!prompt) return;
+
+      appendChatMessage(prompt, 'user');
+      playInput.value = '';
+      playSendBtn.disabled = true;
+
+      const loadingMsg = appendChatMessage('Generating response...', 'assistant', 'Thinking...');
+
+      try {
+        const t0 = performance.now();
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, max_new_tokens: 60, temperature: 0.7 })
+        });
+
+        const data = await res.json();
+        loadingMsg.remove();
+
+        if (res.ok) {
+          appendChatMessage(
+            data.response || '(empty response)',
+            'assistant',
+            `${data.tokens_generated} tokens in ${data.latency_sec}s (${data.tokens_per_sec} tok/s) &bull; RAM: ${data.memory ? data.memory.ram_mb : '--'} MB`
+          );
+          if (data.memory && data.memory.ram_mb) {
+            safeSetText('nav-ram-val', `${data.memory.ram_mb} MB`);
+          }
+        } else {
+          appendChatMessage('Error: ' + (data.detail || 'Generation failed'), 'assistant', 'Error');
+        }
+      } catch (err) {
+        loadingMsg.remove();
+        appendChatMessage('Network Error: ' + err.message, 'assistant', 'Error');
+      } finally {
+        playSendBtn.disabled = false;
+        playInput.focus();
+      }
+    }
+
+    function appendChatMessage(text, role, meta = '') {
+      const container = document.createElement('div');
+      container.className = `chat-bubble-container ${role}`;
+
+      let html = `<div class="chat-bubble">${escapeHtml(text)}</div>`;
+      if (meta) {
+        html += `<div class="chat-meta-bar">${meta}</div>`;
+      }
+      container.innerHTML = html;
+      chatHistory.appendChild(container);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+      return container;
+    }
+
+    // =========================================================================
+    // INTERACTIVE SELF-ATTENTION VISUALIZATION LOGIC
+    // =========================================================================
+    const ATTENTION_MATRIX = [
+      // 0: The
+      { query: "The", scores: [null, 0.55, 0.30, 0.08, 0.07], dominant: "river", shift: "+0.318",
+        narrative: "<strong>What happened inside the 576 dimensions:</strong> As the determiner <em>'The'</em> looks ahead, it attends heavily to <em>'river'</em> (55%) and <em>'bank'</em> (30%), binding its grammatical reference directly to the subject." },
+      // 1: river
+      { query: "river", scores: [0.12, null, 0.52, 0.12, 0.24], dominant: "bank", shift: "+0.384",
+        narrative: "<strong>What happened inside the 576 dimensions:</strong> <em>'river'</em> pairs strongly with <em>'bank'</em> (52%) and <em>'silent'</em> (24%), linking the physical body of water with its edge and peaceful stillness." },
+      // 2: bank (default)
+      { query: "bank", scores: [0.08, 0.64, null, 0.08, 0.20], dominant: "river", shift: "+0.412",
+        narrative: "<strong>What happened inside the 576 dimensions:</strong> When <em>'bank'</em> queries its neighbors, it matches 64% with <em>'river'</em>. Natural water features are mathematically infused into its coordinates, resolving the ambiguous word into a <strong>riverbank</strong> instead of a financial bank!" },
+      // 3: was
+      { query: "was", scores: [0.08, 0.18, 0.28, null, 0.46], dominant: "silent", shift: "+0.295",
+        narrative: "<strong>What happened inside the 576 dimensions:</strong> The copula verb <em>'was'</em> links its predicate adjective <em>'silent'</em> (46%) backward to <em>'bank'</em> (28%), asserting the serene state of the scene." },
+      // 4: silent
+      { query: "silent", scores: [0.08, 0.45, 0.35, 0.12, null], dominant: "river", shift: "+0.362",
+        narrative: "<strong>What happened inside the 576 dimensions:</strong> The descriptive modifier <em>'silent'</em> attends across the waterway, projecting tranquil semantic tones onto both <em>'river'</em> (45%) and <em>'bank'</em> (35%)." }
+    ];
+
+    let currentAttentionQueryIdx = 2; // Default to "bank"
+
+    function initAttentionMiniGrid() {
+      const grid = document.getElementById('att-576-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      for (let i = 0; i < 576; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'att-cell-576';
+        cell.id = `att-cell-${i}`;
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderAttentionVisualization(queryIdx) {
+      currentAttentionQueryIdx = queryIdx;
+      const data = ATTENTION_MATRIX[queryIdx];
+      const wordCards = document.querySelectorAll('.att-word-card');
+      const svgPathsGroup = document.getElementById('att-svg-paths-group');
+      const svgLabelsGroup = document.getElementById('att-svg-labels-group');
+      const canvasContainer = document.getElementById('att-canvas-box');
+
+      if (!canvasContainer || !svgPathsGroup || !svgLabelsGroup) return;
+
+      svgPathsGroup.innerHTML = '';
+      svgLabelsGroup.innerHTML = '';
+
+      // Update Card Active & Badge states
+      wordCards.forEach((card, idx) => {
+        const isQuery = idx === queryIdx;
+        card.classList.toggle('query-active', isQuery);
+
+        const tagBadge = document.getElementById(`att-tag-${idx}`);
+        const scoreBadge = document.getElementById(`att-score-${idx}`);
+
+        if (isQuery) {
+          if (tagBadge) {
+            tagBadge.textContent = 'Query';
+            tagBadge.className = 'att-tag-badge att-tag-query';
+          }
+          if (scoreBadge) {
+            scoreBadge.textContent = 'Focus';
+          }
+        } else {
+          if (tagBadge) {
+            tagBadge.textContent = 'Key';
+            tagBadge.className = 'att-tag-badge att-tag-key';
+          }
+          const score = data.scores[idx];
+          if (scoreBadge) {
+            scoreBadge.textContent = `${(score * 100).toFixed(0)}%`;
+          }
+        }
+      });
+
+      // Update Narrative and Badges
+      safeSetText('att-absorption-title', `Vector Context Blending: 576 Dimensions for "${data.query}"`);
+      safeSetText('att-absorption-subtitle', `Absorbing Value data from neighbors (Primary influencer: "${data.dominant}")`);
+      safeSetText('att-vector-shift-badge', `Δ Context Vector: ${data.shift}`);
+      safeSetHtml('att-explanation-narrative', data.narrative);
+
+      // Measure positions and draw connecting curved SVG arcs
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const queryCard = wordCards[queryIdx];
+      const queryRect = queryCard.getBoundingClientRect();
+      const queryCenterX = queryRect.left + queryRect.width / 2 - containerRect.left;
+      const queryTopY = queryRect.top - containerRect.top;
+
+      wordCards.forEach((keyCard, keyIdx) => {
+        if (keyIdx === queryIdx) return;
+        const score = data.scores[keyIdx];
+        const keyRect = keyCard.getBoundingClientRect();
+        const keyCenterX = keyRect.left + keyRect.width / 2 - containerRect.left;
+        const keyTopY = keyRect.top - containerRect.top;
+
+        // Calculate arched control point
+        const distance = Math.abs(keyCenterX - queryCenterX);
+        const archHeight = Math.min(130, 45 + distance * 0.22);
+        const midX = (queryCenterX + keyCenterX) / 2;
+        const controlY = Math.max(10, queryTopY - archHeight);
+
+        // SVG Path
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const d = `M ${queryCenterX} ${queryTopY} Q ${midX} ${controlY} ${keyCenterX} ${keyTopY}`;
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+
+        // Stroke styling based on attention score
+        const strokeColor = score > 0.4 ? '#4A6B53' : (score > 0.15 ? '#3D4A54' : '#787570');
+        const strokeWidth = Math.max(1.5, Math.min(5, score * 7));
+        const marker = score > 0.4 ? 'url(#att-arrowhead)' : 'url(#att-arrowhead-dim)';
+
+        path.setAttribute('stroke', strokeColor);
+        path.setAttribute('stroke-width', strokeWidth);
+        path.setAttribute('stroke-opacity', Math.max(0.2, score));
+        path.setAttribute('marker-end', marker);
+
+        svgPathsGroup.appendChild(path);
+
+        // Score Label over apex of curve
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', midX);
+        label.setAttribute('y', controlY - 4);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('font-family', 'JetBrains Mono, monospace');
+        label.setAttribute('font-size', '10px');
+        label.setAttribute('font-weight', '600');
+        label.setAttribute('fill', strokeColor);
+        label.setAttribute('opacity', Math.max(0.6, score));
+        label.textContent = `${(score * 100).toFixed(0)}%`;
+        svgLabelsGroup.appendChild(label);
+      });
+
+      // Animate 576-dimensional vector absorption wave
+      animateVectorAbsorption(queryIdx);
+    }
+
+    function animateVectorAbsorption(queryIdx) {
+      const cells = document.querySelectorAll('.att-cell-576');
+      if (!cells || cells.length === 0) return;
+
+      const data = ATTENTION_MATRIX[queryIdx];
+      const maxScore = Math.max(...data.scores.filter(s => s !== null));
+
+      cells.forEach((cell, i) => {
+        // Base coordinate before attention
+        const baseVal = Math.sin(i * 0.12 + queryIdx) * 0.5;
+        const baseColor = baseVal >= 0 ? `rgba(74, 107, 83, ${0.1 + baseVal * 0.4})` : `rgba(184, 83, 62, ${0.1 + Math.abs(baseVal) * 0.4})`;
+        cell.style.backgroundColor = baseColor;
+        cell.style.transform = 'scale(1)';
+
+        // Staggered wave animation sweeping through 576 dims
+        setTimeout(() => {
+          // New blended coordinate after absorbing context
+          const shiftVal = Math.cos(i * 0.15 + maxScore * 4) * 0.6 + (maxScore * 0.3);
+          const newColor = shiftVal >= 0 ? `rgba(74, 107, 83, ${0.25 + shiftVal * 0.65})` : `rgba(184, 83, 62, ${0.15 + Math.abs(shiftVal) * 0.5})`;
+          cell.style.backgroundColor = newColor;
+          cell.style.transform = 'scale(1.15)';
+          setTimeout(() => {
+            cell.style.transform = 'scale(1)';
+          }, 150);
+        }, (i % 36) * 12 + Math.floor(i / 36) * 15);
+      });
+    }
+
+    // Attach click handlers to the 5 words
+    document.addEventListener('DOMContentLoaded', () => {
+      initAttentionMiniGrid();
+      const wordCards = document.querySelectorAll('.att-word-card');
+      wordCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.wordIdx, 10);
+          renderAttentionVisualization(idx);
+        });
+      });
+
+      // Re-draw arrows when window resizes
+      window.addEventListener('resize', () => {
+        if (currentDeckStep === 2) {
+          renderAttentionVisualization(currentAttentionQueryIdx);
+        }
+      });
+    });
+    const deckStepDots = document.querySelectorAll('.deck-step-dot');
+    const deckSlides = document.querySelectorAll('.deck-slide');
+    const deckPrevBtn = document.getElementById('deck-prev-btn');
+    const deckNextBtn = document.getElementById('deck-next-btn');
+
+    function setDeckStep(step) {
+      if (step < 0) step = 0;
+      if (step > 3) step = 3;
+      currentDeckStep = step;
+
+      deckStepDots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === step);
+      });
+      deckSlides.forEach((slide, idx) => {
+        slide.classList.toggle('active', idx === step);
+      });
+
+      if (step === 2) {
+        setTimeout(() => {
+          renderAttentionVisualization(currentAttentionQueryIdx);
+        }, 60);
+      }
+    }
+
+    deckStepDots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => setDeckStep(idx));
+    });
+
+    if (deckPrevBtn) {
+      deckPrevBtn.addEventListener('click', () => setDeckStep(currentDeckStep - 1));
+    }
+    if (deckNextBtn) {
+      deckNextBtn.addEventListener('click', () => setDeckStep(currentDeckStep + 1));
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Auto-run initial simulation on load
+    window.addEventListener('DOMContentLoaded', () => {
+      runSimulation().then(() => {
+        buildInspectorLayerDirectory();
+      });
+    });
+  </script>
+</body>
+</html>
