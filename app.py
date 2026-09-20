@@ -1,3 +1,4 @@
+import math
 import time
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -361,6 +362,193 @@ def simulate(req: SimulateRequest):
         "latency_sec": round(t1 - t0, 4),
         "system_memory": get_system_memory()
     }
+
+
+class MicroMathRequest(BaseModel):
+    prompt: Optional[str] = "Sun and Moon"
+    selected_token_idx: Optional[int] = 0
+    target_token_idx: Optional[int] = 1
+
+
+@app.post("/micromath")
+def get_micromath(req: MicroMathRequest):
+    prompt = (req.prompt or "Sun and Moon").strip()
+    if not prompt:
+        prompt = "Sun and Moon"
+
+    inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
+    input_ids = inputs["input_ids"][0].tolist()
+    if not input_ids:
+        raise HTTPException(status_code=400, detail="Unable to tokenize prompt.")
+
+    tokens = []
+    for i, tid in enumerate(input_ids):
+        t_str = tokenizer.decode([tid])
+        tokens.append({
+            "idx": i,
+            "id": tid,
+            "str": t_str,
+            "repr": repr(t_str)
+        })
+
+    sel_idx = max(0, min(req.selected_token_idx if req.selected_token_idx is not None else 0, len(tokens) - 1))
+    # Target token for attention score: prefer a different token if available
+    default_tgt = 1 if len(tokens) > 1 else 0
+    tgt_idx = req.target_token_idx if req.target_token_idx is not None else default_tgt
+    tgt_idx = max(0, min(tgt_idx, len(tokens) - 1))
+
+    with torch.no_grad():
+        embeds = model.model.embed_tokens(inputs["input_ids"])[0]  # [seq_len, 576]
+        
+        # 1. 3D slices for all tokens
+        tokens_3d = []
+        for i, t in enumerate(tokens):
+            v3 = embeds[i, :3].detach().cpu().float().tolist()
+            tokens_3d.append({
+                **t,
+                "coords": [round(float(x), 3) for x in v3]
+            })
+
+        # 2. Step A: Real 3x3 weight submatrices from Block 0
+        q_weight_full = model.model.layers[0].self_attn.q_proj.weight.detach().cpu().float()
+        k_weight_full = model.model.layers[0].self_attn.k_proj.weight.detach().cpu().float()
+
+        w_q_3x3 = [[round(float(val), 3) for val in row] for row in q_weight_full[:3, :3].tolist()]
+        w_k_3x3 = [[round(float(val), 3) for val in row] for row in k_weight_full[:3, :3].tolist()]
+
+        # 3. Step B: Query Multiplication for selected token
+        sel_x = [float(x) for x in tokens_3d[sel_idx]["coords"]]
+        q_rows = []
+        q_vec = []
+        for row_i in range(3):
+            terms = []
+            row_sum = 0.0
+            for col_j in range(3):
+                xj = sel_x[col_j]
+                wij = w_q_3x3[row_i][col_j]
+                prod = xj * wij
+                row_sum += prod
+                terms.append({
+                    "x_idx": col_j,
+                    "x_val": xj,
+                    "w_val": wij,
+                    "prod": round(prod, 3)
+                })
+            sum_rounded = round(row_sum, 3)
+            q_vec.append(sum_rounded)
+            eq_str = " + ".join([f"({t['x_val']} × {t['w_val']})" for t in terms]) + f" = {sum_rounded}"
+            q_rows.append({
+                "row_idx": row_i,
+                "terms": terms,
+                "sum": sum_rounded,
+                "equation": eq_str
+            })
+
+        # 4. Step C: Key projection for target token and Attention Score
+        tgt_x = [float(x) for x in tokens_3d[tgt_idx]["coords"]]
+        k_rows = []
+        k_vec = []
+        for row_i in range(3):
+            terms = []
+            row_sum = 0.0
+            for col_j in range(3):
+                xj = tgt_x[col_j]
+                wkij = w_k_3x3[row_i][col_j]
+                prod = xj * wkij
+                row_sum += prod
+                terms.append({
+                    "x_idx": col_j,
+                    "x_val": xj,
+                    "w_val": wkij,
+                    "prod": round(prod, 3)
+                })
+            sum_rounded = round(row_sum, 3)
+            k_vec.append(sum_rounded)
+            eq_str = " + ".join([f"({t['x_val']} × {t['w_val']})" for t in terms]) + f" = {sum_rounded}"
+            k_rows.append({
+                "row_idx": row_i,
+                "terms": terms,
+                "sum": sum_rounded,
+                "equation": eq_str
+            })
+
+        # Dot product: q_vec . k_vec
+        score_terms = []
+        raw_score = 0.0
+        for dim_i in range(3):
+            prod = q_vec[dim_i] * k_vec[dim_i]
+            raw_score += prod
+            score_terms.append({
+                "dim": dim_i,
+                "q_val": q_vec[dim_i],
+                "k_val": k_vec[dim_i],
+                "prod": round(prod, 4)
+            })
+        raw_score = round(raw_score, 4)
+        score_eq = " + ".join([f"({t['q_val']} × {t['k_val']})" for t in score_terms]) + f" = {raw_score}"
+
+        # 5. Step D: MLP Filter & SiLU Activation
+        # Take representative values: q_vec coords plus a guaranteed negative demonstrator
+        demo_vals = list(q_vec)
+        # If none of q_vec is negative, append a coordinate from embedding or a fixed negative example to guarantee visual filter demonstration
+        if not any(v < -0.05 for v in demo_vals):
+            # Check embedding coords for negative value
+            found_neg = None
+            for c in sel_x:
+                if c < -0.05:
+                    found_neg = c
+                    break
+            demo_vals.append(found_neg if found_neg is not None else -1.15)
+
+        silu_results = []
+        for d_idx, val in enumerate(demo_vals[:4]):
+            z = float(val)
+            sig = 1.0 / (1.0 + math.exp(-z))
+            silu_z = z * sig
+            is_compressed = (z < 0)
+            shrink_pct = round(abs((silu_z - z) / (abs(z) + 1e-9)) * 100, 1)
+            
+            silu_results.append({
+                "dim_label": f"Dim #{d_idx}" if d_idx < 3 else "Sample Coordinate",
+                "raw_z": round(z, 3),
+                "sigmoid": round(sig, 3),
+                "silu_z": round(silu_z, 3),
+                "is_compressed": is_compressed,
+                "shrink_pct": shrink_pct,
+                "explanation": "The model decides this specific number isn't useful for the next layer, so it shrinks it." if is_compressed else "The model finds this concept relevant, so it passes it through intact."
+            })
+
+    return {
+        "prompt": prompt,
+        "tokens": tokens_3d,
+        "selected_token_idx": sel_idx,
+        "target_token_idx": tgt_idx,
+        "step_a_weights": {
+            "matrix_name": "model.layers.0.self_attn.q_proj.weight[:3, :3]",
+            "w_q_3x3": w_q_3x3,
+            "w_k_3x3": w_k_3x3
+        },
+        "step_b_multiplication": {
+            "token": tokens_3d[sel_idx],
+            "input_x": sel_x,
+            "equations": q_rows,
+            "output_q": q_vec
+        },
+        "step_c_score": {
+            "query_token": tokens_3d[sel_idx],
+            "key_token": tokens_3d[tgt_idx],
+            "query_vec": q_vec,
+            "key_vec": k_vec,
+            "score_terms": score_terms,
+            "raw_score": raw_score,
+            "equation": score_eq
+        },
+        "step_d_filter": {
+            "formula": "SiLU(z) = z * sigmoid(z) = z / (1 + e^(-z))",
+            "items": silu_results
+        }
+    }
+
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
